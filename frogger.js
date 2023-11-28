@@ -100,9 +100,6 @@ function initGameBoard() {
         new SafeLane(Lane.NO_DIRECTION, 0.0),
     ];
     gameBoard = new Board(lanes, gl);
-    for (let i = 0; i < gameBoard.lanes.length; i++) {
-        console.log(gameBoard.lanes[i].vtxBuffer);
-    }
 }
 
 function setupShaders() {
