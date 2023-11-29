@@ -210,6 +210,7 @@ function render() {
     );
     gameBoard.renderLaneBackgrounds(gl, shaderLocs);
     gameBoard.renderFrogs(gl, shaderLocs);
+    gameBoard.renderLaneObjects(gl, shaderLocs);
 }
 
 main();

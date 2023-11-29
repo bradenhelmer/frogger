@@ -11,12 +11,12 @@ class Board {
         this.gl = gl;
         this.loadLaneBuffers(gl);
         this.loadFrogBuffers(gl);
+        this.loadObjectBuffers(gl);
     }
 
     newFrog() {
         // Get random start
         let start = Math.floor(Math.random() * starts.length) / 10;
-        console.log(start);
         this.frogs.push(Frog.newFrog(start));
     }
 
@@ -31,6 +31,30 @@ class Board {
     loadFrogBuffers(gl) {
         for (let frog = 0; frog < this.frogs.length; frog++) {
             this.frogs[frog].loadFrogBuffers(gl);
+        }
+    }
+
+    // Loads object data into GL buffers
+    loadObjectBuffers(gl) {
+        for (let lane = 0; lane < this.lanes.length; lane++) {
+            switch (this.lanes[lane].constructor) {
+                case CarsLane:
+                case TruckLane:
+                case LogLane:
+                case TurtleLane:
+                    {
+                        for (
+                            let obj = 0;
+                            obj < this.lanes[lane].objects.length;
+                            obj++
+                        ) {
+                            this.lanes[lane].objects[obj].loadBuffers(gl);
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
@@ -103,17 +127,54 @@ class Board {
     }
 
     // Renders Lane objects
-    renderLaneObjects() {
+    renderLaneObjects(gl, shaderLocs) {
         for (let lane = 0; lane < this.lanes.length; lane++) {
             switch (this.lanes[lane].constructor) {
                 case CarsLane:
                 case TruckLane:
                 case LogLane:
-                case TurtleLane:
-                    console.log("Rendering Lane Objects..");
-                default:
-                    console.log("No objects for this lane");
+                case TurtleLane: {
+                    for (
+                        let obj = 0;
+                        obj < this.lanes[lane].objects.length;
+                        obj++
+                    ) {
+                        for (const part in this.lanes[lane].objects[obj]
+                            .parts) {
+                            let _part =
+                                this.lanes[lane].objects[obj].parts[part];
+                            gl.bindBuffer(gl.ARRAY_BUFFER, _part.vtxBuffer);
+                            gl.vertexAttribPointer(
+                                shaderLocs.vertexPositionAttrib,
+                                3,
+                                gl.FLOAT,
+                                false,
+                                0,
+                                0,
+                            );
 
+                            gl.uniform3fv(
+                                shaderLocs.vertexColorAttrib,
+                                new Float32Array(_part.material.diffuse),
+                            );
+
+                            gl.bindBuffer(
+                                gl.ELEMENT_ARRAY_BUFFER,
+                                _part.triBuffer,
+                            );
+                            gl.drawElements(
+                                gl.TRIANGLES,
+                                3 * _part.triangles.length,
+                                gl.UNSIGNED_SHORT,
+                                0,
+                            );
+                        }
+                    }
+                    break;
+                }
+
+                default:
+                    break;
             }
         }
     }
@@ -271,25 +332,35 @@ class SafeLane extends Lane {
 class LogLane extends WaterLane {
     constructor(direction, start) {
         super(direction, start);
+        this.objects = [];
     }
 }
 
 class TurtleLane extends WaterLane {
     constructor(direction, start) {
         super(direction, start);
+        this.objects = [];
     }
 }
 
 class TruckLane extends RoadLane {
     constructor(direction, start) {
         super(direction, start);
+        this.objects = [];
     }
 }
 
 class CarsLane extends RoadLane {
     constructor(direction, start) {
         super(direction, start);
-        this.cars = [];
+        this.objects = [];
+        this.initObjects();
+    }
+
+    initObjects() {
+        this.objects.push(Car.newCar(0.1, this.start));
+        this.objects.push(Car.newCar(0.4, this.start));
+        this.objects.push(Car.newCar(0.7, this.start));
     }
 }
 
@@ -588,7 +659,6 @@ class Frog {
 
         // Set centroid and
         this.getFrogCentroid();
-        console.log(this.centroid);
     }
 
     getFrogCentroid() {
@@ -606,7 +676,7 @@ class Frog {
                 centroid[2] += this.bodyParts[part].vertices[vert][2];
             }
         }
-        this.centroid = new vec3.fromvalues(
+        this.centroid = new vec3.fromValues(
             (centroid[0] /= verticescount),
             (centroid[1] /= verticescount),
             (centroid[2] /= verticescount),
@@ -615,19 +685,18 @@ class Frog {
 }
 
 class Car {
-    
     // Create a new car
-    static newCar(start_x) {
+    static newCar(start_x, start_y) {
         let chasis = {
             vertices: [
-                [start_x + 0.03, 0.08, 0.5],
-                [start_x + 0.09, 0.02, 0.5],
-                [start_x + 0.03, 0.08, 0.5],
-                [start_x + 0.09, 0.02, 0.5],
-                [start_x + 0.03, 0.08, 0.55],
-                [start_x + 0.09, 0.02, 0.55],
-                [start_x + 0.03, 0.08, 0.55],
-                [start_x + 0.09, 0.02, 0.55],
+                [start_x + 0.03, start_y + 0.09, 0.5],
+                [start_x + 0.1, start_y + 0.09, 0.5],
+                [start_x + 0.03, start_y + 0.01, 0.5],
+                [start_x + 0.1, start_y + 0.01, 0.5],
+                [start_x + 0.03, start_y + 0.09, 0.55],
+                [start_x + 0.1, start_y + 0.09, 0.55],
+                [start_x + 0.03, start_y + 0.01, 0.55],
+                [start_x + 0.1, start_y + 0.01, 0.55],
             ],
             normals: [
                 [0.0, 0.0, -1.0],
@@ -641,7 +710,7 @@ class Car {
             ],
             material: {
                 ambient: [0.1, 0.1, 0.1],
-                diffuse: [0.0, 0.0, 0.0],
+                diffuse: [0.2, 0.2, 0.2],
                 specular: [0.3, 0.3, 0.3],
                 n: 10,
             },
@@ -663,14 +732,14 @@ class Car {
 
         let hood = {
             vertices: [
-                [start_x + 0.01, 0.06, 0.5],
-                [start_x + 0.03, 0.04, 0.5],
-                [start_x + 0.01, 0.06, 0.5],
-                [start_x + 0.03, 0.04, 0.5],
-                [start_x + 0.01, 0.06, 0.55],
-                [start_x + 0.03, 0.04, 0.55],
-                [start_x + 0.01, 0.06, 0.55],
-                [start_x + 0.03, 0.04, 0.55],
+                [start_x + 0.01, start_y + 0.08, 0.5],
+                [start_x + 0.03, start_y + 0.08, 0.5],
+                [start_x + 0.01, start_y + 0.02, 0.5],
+                [start_x + 0.03, start_y + 0.02, 0.5],
+                [start_x + 0.01, start_y + 0.08, 0.52],
+                [start_x + 0.03, start_y + 0.08, 0.52],
+                [start_x + 0.01, start_y + 0.02, 0.52],
+                [start_x + 0.03, start_y + 0.02, 0.52],
             ],
             normals: [
                 [0.0, 0.0, -1.0],
@@ -708,21 +777,21 @@ class Car {
     }
 
     constructor(chasis, hood) {
-        this.carParts = {
+        this.parts = {
             chasis: chasis,
             hood: hood,
         };
     }
 
-    loadCarBuffers(gl) {
-        for (const part in this.carParts) {
+    loadBuffers(gl) {
+        for (const part in this.parts) {
             let vtxCoordArr = [];
             for (
                 let vertex = 0;
-                vertex < this.carParts[part].vertices.length;
+                vertex < this.parts[part].vertices.length;
                 vertex++
             ) {
-                let vtxToAdd = this.carParts[part].vertices[vertex];
+                let vtxToAdd = this.parts[part].vertices[vertex];
                 vtxCoordArr.push(vtxToAdd[0], vtxToAdd[1], vtxToAdd[2]);
             }
 
@@ -733,15 +802,15 @@ class Car {
                 new Float32Array(vtxCoordArr),
                 gl.STATIC_DRAW,
             );
-            this.carParts[part].vtxBuffer = vtxBuffer;
+            this.parts[part].vtxBuffer = vtxBuffer;
 
             let nrmCoordArr = [];
             for (
                 let normal = 0;
-                normal < this.carParts[part].normals.length;
+                normal < this.parts[part].normals.length;
                 normal++
             ) {
-                let nrmToAdd = this.carParts[part].normals[normal];
+                let nrmToAdd = this.parts[part].normals[normal];
                 nrmCoordArr.push(nrmToAdd[0], nrmToAdd[1], nrmToAdd[2]);
             }
 
@@ -752,15 +821,15 @@ class Car {
                 new Float32Array(nrmCoordArr),
                 gl.STATIC_DRAW,
             );
-            this.carParts[part].nrmBuffer = nrmBuffer;
+            this.parts[part].nrmBuffer = nrmBuffer;
 
             let triCoordArr = [];
             for (
                 let triangle = 0;
-                triangle < this.carParts[part].triangles.length;
+                triangle < this.parts[part].triangles.length;
                 triangle++
             ) {
-                let triToAdd = this.carParts[part].triangles[triangle];
+                let triToAdd = this.parts[part].triangles[triangle];
                 triCoordArr.push(triToAdd[0], triToAdd[1], triToAdd[2]);
             }
             let triBuffer = gl.createBuffer();
@@ -770,23 +839,23 @@ class Car {
                 new Uint16Array(triCoordArr),
                 gl.STATIC_DRAW,
             );
-            this.carParts[part].triBuffer = triBuffer;
+            this.parts[part].triBuffer = triBuffer;
         }
     }
 
     getCarCentroid() {
         let verticescount = 0;
         let centroid = [0, 0, 0];
-        for (const part in this.carParts) {
-            verticescount += this.carParts[part].vertices.length;
+        for (const part in this.parts) {
+            verticescount += this.parts[part].vertices.length;
             for (
                 let vert = 0;
-                vert < this.carParts[part].vertices.length;
+                vert < this.parts[part].vertices.length;
                 vert++
             ) {
-                centroid[0] += this.carParts[part].vertices[vert][0];
-                centroid[1] += this.carParts[part].vertices[vert][1];
-                centroid[2] += this.carParts[part].vertices[vert][2];
+                centroid[0] += this.parts[part].vertices[vert][0];
+                centroid[1] += this.parts[part].vertices[vert][1];
+                centroid[2] += this.parts[part].vertices[vert][2];
             }
         }
         this.centroid = new vec3.fromvalues(
