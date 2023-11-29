@@ -429,7 +429,10 @@ class TruckLane extends RoadLane {
     }
 
     checkLaneBounds() {
-        let lastObj = this.objects[this.direction === Lane.RIGHT ? this.objects.length - 1 : 0];
+        let lastObj =
+            this.objects[
+                this.direction === Lane.RIGHT ? this.objects.length - 1 : 0
+            ];
         let lastXLoc = lastObj.centroid[0];
 
         if (lastXLoc > 1.1) {
@@ -455,7 +458,10 @@ class CarsLane extends RoadLane {
     }
 
     checkLaneBounds() {
-        let lastObj = this.objects[this.direction === Lane.RIGHT ? this.objects.length - 1 : 0];
+        let lastObj =
+            this.objects[
+                this.direction === Lane.RIGHT ? this.objects.length - 1 : 0
+            ];
         let lastXLoc = lastObj.centroid[0];
 
         if (lastXLoc < -0.3) {
