@@ -49,6 +49,7 @@ var shaderLocs = {
     vertexColorAttrib: null,
     modelViewMatrixUniform: null,
     modelProjectionMatrixUniform: null,
+    modelTransformMatrixUniform: null,
     normalMatrixUniform: null,
 };
 
@@ -123,11 +124,13 @@ function setupShaders() {
         varying lowp vec3 vColor;
         uniform mat4 modelViewMatrix;
         uniform mat4 modelProjectionMatrix;
+        uniform mat4 modelTransformMatrix;
 
         void main(void) {
             gl_Position = 
                 modelProjectionMatrix *
                 modelViewMatrix *
+                modelTransformMatrix *
                 vec4(vertexPosition, 1.0);
             vColor = vertexColor;
         }
@@ -175,6 +178,11 @@ function setupShaders() {
                 shaderLocs.modelProjectionMatrixUniform = gl.getUniformLocation(
                     shaderProgram,
                     "modelProjectionMatrix",
+                );
+
+                shaderLocs.modelTransformMatrixUniform = gl.getUniformLocation(
+                    shaderProgram,
+                    "modelTransformMatrix",
                 );
 
                 shaderLocs.vertexPositionAttrib = gl.getAttribLocation(

@@ -100,6 +100,14 @@ class Board {
     renderLaneBackgrounds(gl, shaderLocs) {
         for (let lane = 0; lane < this.lanes.length; lane++) {
             gl.bindBuffer(gl.ARRAY_BUFFER, this.lanes[lane].vtxBuffer);
+
+            // TODO might change in the future for moving lanes
+            gl.uniformMatrix4fv(
+                shaderLocs.modelTransformMatrixUniform,
+                false,
+                mat4.create(),
+            );
+
             gl.vertexAttribPointer(
                 shaderLocs.vertexPositionAttrib,
                 3,
@@ -139,6 +147,26 @@ class Board {
                         obj < this.lanes[lane].objects.length;
                         obj++
                     ) {
+                        switch (this.lanes[lane].direction) {
+                            case Lane.RIGHT:
+                                Lane.translateObjectsRight(
+                                    this.lanes[lane].objects[obj],
+                                );
+                                break;
+                            case Lane.LEFT:
+                                Lane.translateObjectsLeft(
+                                    this.lanes[lane].objects[obj],
+                                );
+                                break;
+                            default:
+                                break;
+                        }
+                        gl.uniformMatrix4fv(
+                            shaderLocs.modelTransformMatrixUniform,
+                            false,
+                            this.lanes[lane].objects[obj].modelMatrix,
+                        );
+
                         for (const part in this.lanes[lane].objects[obj]
                             .parts) {
                             let _part =
@@ -170,6 +198,7 @@ class Board {
                             );
                         }
                     }
+                    this.lanes[lane].checkLaneBounds(gl);
                     break;
                 }
 
@@ -187,6 +216,31 @@ class Lane {
     static LEFT = 1;
     static NO_DIRECTION = 2;
     static material;
+
+    // Handles right moving lane objects
+    static translateObjectsRight(object) {
+        mat4.multiply(
+            object.modelMatrix,
+            mat4.fromTranslation(mat4.create(), vec3.fromValues(-0.002, 0, 0)),
+            object.modelMatrix,
+        );
+
+        object.centroid[0] -= 0.002;
+    }
+
+    // Handles left moving lane objects
+    static translateObjectsLeft(object) {
+        mat4.multiply(
+            object.modelMatrix,
+            mat4.fromTranslation(mat4.create(), vec3.fromValues(0.002, 0, 0)),
+            object.modelMatrix,
+        );
+
+        object.centroid[0] += 0.002;
+    }
+
+    // Rotates the object to the back of the lane with translation.
+    static rotateToBack(object, distance) {}
 
     constructor(direction, start) {
         this.direction = direction;
@@ -334,6 +388,10 @@ class LogLane extends WaterLane {
         super(direction, start);
         this.objects = [];
     }
+
+    checkLaneBounds() {
+        return;
+    }
 }
 
 class TurtleLane extends WaterLane {
@@ -341,12 +399,20 @@ class TurtleLane extends WaterLane {
         super(direction, start);
         this.objects = [];
     }
+
+    checkLaneBounds() {
+        return;
+    }
 }
 
 class TruckLane extends RoadLane {
     constructor(direction, start) {
         super(direction, start);
         this.objects = [];
+    }
+
+    checkLaneBounds() {
+        return;
     }
 }
 
@@ -358,9 +424,17 @@ class CarsLane extends RoadLane {
     }
 
     initObjects() {
-        this.objects.push(Car.newCar(0.1, this.start));
-        this.objects.push(Car.newCar(0.4, this.start));
+        this.objects.push(Car.newCar(1.6, this.start));
+        this.objects.push(Car.newCar(1.3, this.start));
+        this.objects.push(Car.newCar(1, this.start));
         this.objects.push(Car.newCar(0.7, this.start));
+        this.objects.push(Car.newCar(0.4, this.start));
+        this.objects.push(Car.newCar(0.1, this.start));
+    }
+
+    checkLaneBounds(gl) {
+        let lastObj = this.objects[this.objects.length - 1];
+        let lastXLoc = lastObj.centroid[0];
     }
 }
 
@@ -657,7 +731,8 @@ class Frog {
             this.bodyParts[part].triBuffer = triBuffer;
         }
 
-        // Set centroid and
+        // Set centroid and model matrix
+        this.modelMatrix = mat4.create();
         this.getFrogCentroid();
     }
 
@@ -773,14 +848,16 @@ class Car {
             ],
         };
 
-        return new Car(chasis, hood);
+        return new Car(chasis, hood, start_x, start_y);
     }
 
-    constructor(chasis, hood) {
+    constructor(chasis, hood, start_x, start_y) {
         this.parts = {
             chasis: chasis,
             hood: hood,
         };
+        this.start_x = start_x;
+        this.start_y = start_y;
     }
 
     loadBuffers(gl) {
@@ -841,6 +918,8 @@ class Car {
             );
             this.parts[part].triBuffer = triBuffer;
         }
+        this.modelMatrix = mat4.create();
+        this.getCarCentroid();
     }
 
     getCarCentroid() {
@@ -858,7 +937,7 @@ class Car {
                 centroid[2] += this.parts[part].vertices[vert][2];
             }
         }
-        this.centroid = new vec3.fromvalues(
+        this.centroid = new vec3.fromValues(
             (centroid[0] /= verticescount),
             (centroid[1] /= verticescount),
             (centroid[2] /= verticescount),
