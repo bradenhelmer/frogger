@@ -8,14 +8,13 @@ class Board {
         this.lanes = lanes;
         this.frogs = [];
         this.newFrog();
-        this.gl = gl;
         this.loadLaneBuffers(gl);
         this.loadFrogBuffers(gl);
         this.loadObjectBuffers(gl);
     }
 
+    // Init a new frog.
     newFrog() {
-        // Get random start
         let start = Math.floor(Math.random() * starts.length) / 10;
         this.frogs.push(Frog.newFrog(start));
     }
@@ -154,9 +153,9 @@ class Board {
                                 );
                                 break;
                             case Lane.LEFT:
-                                Lane.translateObjectsLeft(
-                                    this.lanes[lane].objects[obj],
-                                );
+                                // Lane.translateObjectsLeft(
+                                //     this.lanes[lane].objects[obj],
+                                // );
                                 break;
                             default:
                                 break;
@@ -221,26 +220,37 @@ class Lane {
     static translateObjectsRight(object) {
         mat4.multiply(
             object.modelMatrix,
-            mat4.fromTranslation(mat4.create(), vec3.fromValues(-0.002, 0, 0)),
+            mat4.fromTranslation(mat4.create(), vec3.fromValues(-0.001, 0, 0)),
             object.modelMatrix,
         );
 
-        object.centroid[0] -= 0.002;
+        object.centroid[0] -= 0.001;
     }
 
     // Handles left moving lane objects
     static translateObjectsLeft(object) {
         mat4.multiply(
             object.modelMatrix,
-            mat4.fromTranslation(mat4.create(), vec3.fromValues(0.002, 0, 0)),
+            mat4.fromTranslation(mat4.create(), vec3.fromValues(0.001, 0, 0)),
             object.modelMatrix,
         );
 
-        object.centroid[0] += 0.002;
+        object.centroid[0] += 0.001;
     }
 
     // Rotates the object to the back of the lane with translation.
-    static rotateToBack(object, distance) {}
+    static rotateToBack(object, distance) {
+        mat4.multiply(
+            object.modelMatrix,
+            mat4.fromTranslation(
+                mat4.create(),
+                vec3.fromValues(distance, 0, 0),
+            ),
+            object.modelMatrix,
+        );
+
+        object.centroid[0] += distance;
+    }
 
     constructor(direction, start) {
         this.direction = direction;
@@ -371,7 +381,7 @@ class HomeLane extends WaterLane {
 class SafeLane extends Lane {
     static material = {
         ambient: [0.1, 0.1, 0.1],
-        diffuse: [0.7, 0.3, 0.7],
+        diffuse: [0.6, 0.3, 0.9],
         specular: [0.3, 0.3, 0.3],
         n: 10,
     };
@@ -409,10 +419,22 @@ class TruckLane extends RoadLane {
     constructor(direction, start) {
         super(direction, start);
         this.objects = [];
+        this.initObjects();
+    }
+
+    initObjects() {
+        this.objects.push(Truck.newTruck(0.7, this.start));
+        this.objects.push(Truck.newTruck(0.1, this.start));
     }
 
     checkLaneBounds() {
-        return;
+        let lastObj = this.objects[this.objects.length - 1];
+        let lastXLoc = lastObj.centroid[0];
+
+        if (lastXLoc > 1.1) {
+            Lane.rotateToBack(lastObj, -1.5);
+            this.objects.unshift(this.objects.pop());
+        }
     }
 }
 
@@ -424,7 +446,6 @@ class CarsLane extends RoadLane {
     }
 
     initObjects() {
-        this.objects.push(Car.newCar(1.6, this.start));
         this.objects.push(Car.newCar(1.3, this.start));
         this.objects.push(Car.newCar(1, this.start));
         this.objects.push(Car.newCar(0.7, this.start));
@@ -432,9 +453,14 @@ class CarsLane extends RoadLane {
         this.objects.push(Car.newCar(0.1, this.start));
     }
 
-    checkLaneBounds(gl) {
+    checkLaneBounds() {
         let lastObj = this.objects[this.objects.length - 1];
         let lastXLoc = lastObj.centroid[0];
+
+        if (lastXLoc < -0.3) {
+            Lane.rotateToBack(lastObj, 1.5);
+            this.objects.unshift(this.objects.pop());
+        }
     }
 }
 
@@ -448,10 +474,10 @@ class Frog {
                 [start_x + 0.04, 0.08, 0.5],
                 [start_x + 0.06, 0.08, 0.5],
                 [start_x + 0.06, 0.02, 0.5],
-                [start_x + 0.04, 0.08, 0.52],
-                [start_x + 0.06, 0.08, 0.52],
-                [start_x + 0.04, 0.02, 0.52],
-                [start_x + 0.06, 0.02, 0.52],
+                [start_x + 0.04, 0.08, 0.48],
+                [start_x + 0.06, 0.08, 0.48],
+                [start_x + 0.04, 0.02, 0.48],
+                [start_x + 0.06, 0.02, 0.48],
             ],
             normals: [
                 [0.0, 0.0, -1.0],
@@ -490,10 +516,10 @@ class Frog {
                 [start_x + 0.04, 0.07, 0.5],
                 [start_x + 0.02, 0.06, 0.5],
                 [start_x + 0.04, 0.06, 0.5],
-                [start_x + 0.02, 0.07, 0.52],
-                [start_x + 0.04, 0.07, 0.52],
-                [start_x + 0.02, 0.06, 0.52],
-                [start_x + 0.04, 0.06, 0.52],
+                [start_x + 0.02, 0.07, 0.48],
+                [start_x + 0.04, 0.07, 0.48],
+                [start_x + 0.02, 0.06, 0.48],
+                [start_x + 0.04, 0.06, 0.48],
             ],
             normals: [
                 [0.0, 0.0, -1.0],
@@ -532,10 +558,10 @@ class Frog {
                 [start_x + 0.08, 0.07, 0.5],
                 [start_x + 0.06, 0.06, 0.5],
                 [start_x + 0.08, 0.06, 0.5],
-                [start_x + 0.06, 0.07, 0.52],
-                [start_x + 0.08, 0.07, 0.52],
-                [start_x + 0.06, 0.06, 0.52],
-                [start_x + 0.08, 0.06, 0.52],
+                [start_x + 0.06, 0.07, 0.48],
+                [start_x + 0.08, 0.07, 0.48],
+                [start_x + 0.06, 0.06, 0.48],
+                [start_x + 0.08, 0.06, 0.48],
             ],
             normals: [
                 [0.0, 0.0, -1.0],
@@ -574,10 +600,10 @@ class Frog {
                 [start_x + 0.08, 0.05, 0.5],
                 [start_x + 0.06, 0.04, 0.5],
                 [start_x + 0.08, 0.04, 0.5],
-                [start_x + 0.06, 0.05, 0.52],
-                [start_x + 0.08, 0.05, 0.52],
-                [start_x + 0.06, 0.04, 0.52],
-                [start_x + 0.08, 0.04, 0.52],
+                [start_x + 0.06, 0.05, 0.48],
+                [start_x + 0.08, 0.05, 0.48],
+                [start_x + 0.06, 0.04, 0.48],
+                [start_x + 0.08, 0.04, 0.48],
             ],
             normals: [
                 [0.0, 0.0, -1.0],
@@ -616,10 +642,10 @@ class Frog {
                 [start_x + 0.04, 0.05, 0.5],
                 [start_x + 0.02, 0.04, 0.5],
                 [start_x + 0.04, 0.04, 0.5],
-                [start_x + 0.02, 0.05, 0.52],
-                [start_x + 0.04, 0.05, 0.52],
-                [start_x + 0.02, 0.04, 0.52],
-                [start_x + 0.04, 0.04, 0.52],
+                [start_x + 0.02, 0.05, 0.48],
+                [start_x + 0.04, 0.05, 0.48],
+                [start_x + 0.02, 0.04, 0.48],
+                [start_x + 0.04, 0.04, 0.48],
             ],
             normals: [
                 [0.0, 0.0, -1.0],
@@ -764,14 +790,14 @@ class Car {
     static newCar(start_x, start_y) {
         let chasis = {
             vertices: [
-                [start_x + 0.03, start_y + 0.09, 0.5],
-                [start_x + 0.1, start_y + 0.09, 0.5],
-                [start_x + 0.03, start_y + 0.01, 0.5],
-                [start_x + 0.1, start_y + 0.01, 0.5],
-                [start_x + 0.03, start_y + 0.09, 0.55],
-                [start_x + 0.1, start_y + 0.09, 0.55],
-                [start_x + 0.03, start_y + 0.01, 0.55],
-                [start_x + 0.1, start_y + 0.01, 0.55],
+                [start_x + 0.03, start_y + 0.07, 0.5],
+                [start_x + 0.09, start_y + 0.07, 0.5],
+                [start_x + 0.03, start_y + 0.03, 0.5],
+                [start_x + 0.09, start_y + 0.03, 0.5],
+                [start_x + 0.03, start_y + 0.07, 0.45],
+                [start_x + 0.09, start_y + 0.07, 0.45],
+                [start_x + 0.03, start_y + 0.03, 0.45],
+                [start_x + 0.09, start_y + 0.03, 0.45],
             ],
             normals: [
                 [0.0, 0.0, -1.0],
@@ -807,14 +833,14 @@ class Car {
 
         let hood = {
             vertices: [
-                [start_x + 0.01, start_y + 0.08, 0.5],
-                [start_x + 0.03, start_y + 0.08, 0.5],
-                [start_x + 0.01, start_y + 0.02, 0.5],
-                [start_x + 0.03, start_y + 0.02, 0.5],
-                [start_x + 0.01, start_y + 0.08, 0.52],
-                [start_x + 0.03, start_y + 0.08, 0.52],
-                [start_x + 0.01, start_y + 0.02, 0.52],
-                [start_x + 0.03, start_y + 0.02, 0.52],
+                [start_x + 0.01, start_y + 0.06, 0.5],
+                [start_x + 0.03, start_y + 0.06, 0.5],
+                [start_x + 0.01, start_y + 0.04, 0.5],
+                [start_x + 0.03, start_y + 0.04, 0.5],
+                [start_x + 0.01, start_y + 0.06, 0.48],
+                [start_x + 0.03, start_y + 0.06, 0.48],
+                [start_x + 0.01, start_y + 0.04, 0.48],
+                [start_x + 0.03, start_y + 0.04, 0.48],
             ],
             normals: [
                 [0.0, 0.0, -1.0],
@@ -945,7 +971,232 @@ class Car {
     }
 }
 
-class Truck {}
+class Truck {
+    // Create a new truck
+    static newTruck(start_x, start_y) {
+        let body = {
+            vertices: [
+                [start_x + 0.17, start_y + 0.07, 0.5],
+                [start_x + 0.14, start_y + 0.07, 0.5],
+                [start_x + 0.17, start_y + 0.03, 0.5],
+                [start_x + 0.14, start_y + 0.03, 0.5],
+                [start_x + 0.17, start_y + 0.07, 0.47],
+                [start_x + 0.14, start_y + 0.07, 0.47],
+                [start_x + 0.17, start_y + 0.03, 0.47],
+                [start_x + 0.14, start_y + 0.03, 0.47],
+            ],
+            normals: [
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+            ],
+            material: {
+                ambient: [0.1, 0.1, 0.1],
+                diffuse: [0.0, 0.0, 0.0],
+                specular: [0.3, 0.3, 0.3],
+                n: 10,
+            },
+            triangles: [
+                [0, 1, 3],
+                [2, 3, 0],
+                [7, 5, 4],
+                [7, 6, 4],
+                [5, 4, 0],
+                [5, 1, 0],
+                [6, 7, 3],
+                [6, 2, 3],
+                [0, 4, 2],
+                [4, 2, 6],
+                [7, 3, 1],
+                [7, 1, 5],
+            ],
+        };
+        let cab = {
+            vertices: [
+                [start_x + 0.14, start_y + 0.07, 0.5],
+                [start_x + 0.1, start_y + 0.07, 0.5],
+                [start_x + 0.14, start_y + 0.03, 0.5],
+                [start_x + 0.1, start_y + 0.03, 0.5],
+                [start_x + 0.14, start_y + 0.07, 0.42],
+                [start_x + 0.1, start_y + 0.07, 0.42],
+                [start_x + 0.14, start_y + 0.03, 0.42],
+                [start_x + 0.1, start_y + 0.03, 0.42],
+            ],
+            normals: [
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+            ],
+            material: {
+                ambient: [0.1, 0.1, 0.1],
+                diffuse: [0.0, 1.0, 0.0],
+                specular: [0.3, 0.3, 0.3],
+                n: 10,
+            },
+            triangles: [
+                [0, 1, 3],
+                [2, 3, 0],
+                [7, 5, 4],
+                [7, 6, 4],
+                [5, 4, 0],
+                [5, 1, 0],
+                [6, 7, 3],
+                [6, 2, 3],
+                [0, 4, 2],
+                [4, 2, 6],
+                [7, 3, 1],
+                [7, 1, 5],
+            ],
+        };
+        let trailer = {
+            vertices: [
+                [start_x + 0.1, start_y + 0.08, 0.5],
+                [start_x, start_y + 0.08, 0.5],
+                [start_x + 0.1, start_y + 0.02, 0.5],
+                [start_x, start_y + 0.02, 0.5],
+                [start_x + 0.1, start_y + 0.08, 0.42],
+                [start_x, start_y + 0.08, 0.42],
+                [start_x + 0.1, start_y + 0.02, 0.42],
+                [start_x, start_y + 0.02, 0.42],
+            ],
+            normals: [
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+            ],
+            material: {
+                ambient: [0.1, 0.1, 0.1],
+                diffuse: [1.0, 1.0, 1.0],
+                specular: [0.3, 0.3, 0.3],
+                n: 10,
+            },
+            triangles: [
+                [0, 1, 3],
+                [2, 3, 0],
+                [7, 5, 4],
+                [7, 6, 4],
+                [5, 4, 0],
+                [5, 1, 0],
+                [6, 7, 3],
+                [6, 2, 3],
+                [0, 4, 2],
+                [4, 2, 6],
+                [7, 3, 1],
+                [7, 1, 5],
+            ],
+        };
+        return new Truck(body, cab, trailer, start_x, start_y);
+    }
+
+    constructor(body, cab, trailer, start_x, start_y) {
+        this.parts = {
+            body: body,
+            cab: cab,
+            trailer: trailer,
+        };
+        this.start_x = start_x;
+        this.start_y = start_y;
+    }
+
+    loadBuffers(gl) {
+        for (const part in this.parts) {
+            let vtxCoordArr = [];
+            for (
+                let vertex = 0;
+                vertex < this.parts[part].vertices.length;
+                vertex++
+            ) {
+                let vtxToAdd = this.parts[part].vertices[vertex];
+                vtxCoordArr.push(vtxToAdd[0], vtxToAdd[1], vtxToAdd[2]);
+            }
+
+            let vtxBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vtxBuffer);
+            gl.bufferData(
+                gl.ARRAY_BUFFER,
+                new Float32Array(vtxCoordArr),
+                gl.STATIC_DRAW,
+            );
+            this.parts[part].vtxBuffer = vtxBuffer;
+
+            let nrmCoordArr = [];
+            for (
+                let normal = 0;
+                normal < this.parts[part].normals.length;
+                normal++
+            ) {
+                let nrmToAdd = this.parts[part].normals[normal];
+                nrmCoordArr.push(nrmToAdd[0], nrmToAdd[1], nrmToAdd[2]);
+            }
+
+            let nrmBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, nrmBuffer);
+            gl.bufferData(
+                gl.ARRAY_BUFFER,
+                new Float32Array(nrmCoordArr),
+                gl.STATIC_DRAW,
+            );
+            this.parts[part].nrmBuffer = nrmBuffer;
+
+            let triCoordArr = [];
+            for (
+                let triangle = 0;
+                triangle < this.parts[part].triangles.length;
+                triangle++
+            ) {
+                let triToAdd = this.parts[part].triangles[triangle];
+                triCoordArr.push(triToAdd[0], triToAdd[1], triToAdd[2]);
+            }
+            let triBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, triBuffer);
+            gl.bufferData(
+                gl.ELEMENT_ARRAY_BUFFER,
+                new Uint16Array(triCoordArr),
+                gl.STATIC_DRAW,
+            );
+            this.parts[part].triBuffer = triBuffer;
+        }
+        this.modelMatrix = mat4.create();
+        this.getTruckCentroid();
+    }
+
+    getTruckCentroid() {
+        let verticescount = 0;
+        let centroid = [0, 0, 0];
+        for (const part in this.parts) {
+            verticescount += this.parts[part].vertices.length;
+            for (
+                let vert = 0;
+                vert < this.parts[part].vertices.length;
+                vert++
+            ) {
+                centroid[0] += this.parts[part].vertices[vert][0];
+                centroid[1] += this.parts[part].vertices[vert][1];
+                centroid[2] += this.parts[part].vertices[vert][2];
+            }
+        }
+        this.centroid = new vec3.fromValues(
+            (centroid[0] /= verticescount),
+            (centroid[1] /= verticescount),
+            (centroid[2] /= verticescount),
+        );
+    }
+}
 
 class Log {}
 
