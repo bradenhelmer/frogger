@@ -148,14 +148,14 @@ class Board {
                     ) {
                         switch (this.lanes[lane].direction) {
                             case Lane.RIGHT:
-                                Lane.translateObjectsRight(
+                                Lane.translateObjectRight(
                                     this.lanes[lane].objects[obj],
                                 );
                                 break;
                             case Lane.LEFT:
-                                // Lane.translateObjectsLeft(
-                                //     this.lanes[lane].objects[obj],
-                                // );
+                                Lane.translateObjectLeft(
+                                    this.lanes[lane].objects[obj],
+                                );
                                 break;
                             default:
                                 break;
@@ -217,7 +217,7 @@ class Lane {
     static material;
 
     // Handles right moving lane objects
-    static translateObjectsRight(object) {
+    static translateObjectRight(object) {
         mat4.multiply(
             object.modelMatrix,
             mat4.fromTranslation(mat4.create(), vec3.fromValues(-0.001, 0, 0)),
@@ -228,7 +228,7 @@ class Lane {
     }
 
     // Handles left moving lane objects
-    static translateObjectsLeft(object) {
+    static translateObjectLeft(object) {
         mat4.multiply(
             object.modelMatrix,
             mat4.fromTranslation(mat4.create(), vec3.fromValues(0.001, 0, 0)),
@@ -423,16 +423,17 @@ class TruckLane extends RoadLane {
     }
 
     initObjects() {
-        this.objects.push(Truck.newTruck(0.7, this.start));
+        this.objects.push(Truck.newTruck(0.6, this.start));
         this.objects.push(Truck.newTruck(0.1, this.start));
+        this.objects.push(Truck.newTruck(-0.5, this.start));
     }
 
     checkLaneBounds() {
-        let lastObj = this.objects[this.objects.length - 1];
+        let lastObj = this.objects[this.direction === Lane.RIGHT ? this.objects.length - 1 : 0];
         let lastXLoc = lastObj.centroid[0];
 
         if (lastXLoc > 1.1) {
-            Lane.rotateToBack(lastObj, -1.5);
+            Lane.rotateToBack(lastObj, -1.7);
             this.objects.unshift(this.objects.pop());
         }
     }
@@ -454,7 +455,7 @@ class CarsLane extends RoadLane {
     }
 
     checkLaneBounds() {
-        let lastObj = this.objects[this.objects.length - 1];
+        let lastObj = this.objects[this.direction === Lane.RIGHT ? this.objects.length - 1 : 0];
         let lastXLoc = lastObj.centroid[0];
 
         if (lastXLoc < -0.3) {
