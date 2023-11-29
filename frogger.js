@@ -1,7 +1,7 @@
 // frogger.js
 // ~~~~~~~~~~
 // Braden Helmer
-// CSC 561 - Prog 5
+// NCSU CSC 561 - Prog 5
 // December 11th, 2023
 // Implmentation of classic Frogger game with WebGL and GLSL.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -28,10 +28,10 @@ const NEAR = 0.5;
 const FAR = 300;
 
 // WebGL Object
-var gl = null;
+var gl;
 
 // Init viewing Vectors
-var eye = new vec3.fromValues(0.5, 0.5, -0.5);
+var eye = new vec3.fromValues(0.5, 0.5, 0.0);
 var lookUp = new vec3.fromValues(0.0, 1.0, 0.0);
 var lookAt = new vec3.fromValues(0.5, 0.5, 1.0);
 
@@ -47,6 +47,9 @@ var gameBoard = null;
 var shaderLocs = {
     vertexPositionAttrib: null,
     vertexColorAttrib: null,
+    modelViewMatrixUniform: null,
+    modelProjectionMatrixUniform: null,
+    normalMatrixUniform: null,
 };
 
 function initWebGL() {
@@ -118,9 +121,14 @@ function setupShaders() {
         uniform vec3 vertexColor;
 
         varying lowp vec3 vColor;
+        uniform mat4 modelViewMatrix;
+        uniform mat4 modelProjectionMatrix;
 
         void main(void) {
-            gl_Position = vec4(vertexPosition, 1.0);
+            gl_Position = 
+                modelProjectionMatrix *
+                modelViewMatrix *
+                vec4(vertexPosition, 1.0);
             vColor = vertexColor;
         }
     `;
@@ -158,6 +166,17 @@ function setupShaders() {
             } else {
                 gl.useProgram(shaderProgram);
 
+                // Viewing Matrices
+                shaderLocs.modelViewMatrixUniform = gl.getUniformLocation(
+                    shaderProgram,
+                    "modelViewMatrix",
+                );
+
+                shaderLocs.modelProjectionMatrixUniform = gl.getUniformLocation(
+                    shaderProgram,
+                    "modelProjectionMatrix",
+                );
+
                 shaderLocs.vertexPositionAttrib = gl.getAttribLocation(
                     shaderProgram,
                     "vertexPosition",
@@ -179,7 +198,18 @@ function setupShaders() {
 function render() {
     requestAnimationFrame(render);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.uniformMatrix4fv(
+        shaderLocs.modelProjectionMatrixUniform,
+        false,
+        modelProjectionMatrix,
+    );
+    gl.uniformMatrix4fv(
+        shaderLocs.modelViewMatrixUniform,
+        false,
+        modelViewMatrix,
+    );
     gameBoard.renderLaneBackgrounds(gl, shaderLocs);
+    gameBoard.renderFrogs(gl, shaderLocs);
 }
 
 main();
