@@ -406,10 +406,10 @@ class Truck {
                 [start_x + 0.1, start_y + 0.07, 0.5],
                 [start_x + 0.14, start_y + 0.03, 0.5],
                 [start_x + 0.1, start_y + 0.03, 0.5],
-                [start_x + 0.14, start_y + 0.07, 0.42],
-                [start_x + 0.1, start_y + 0.07, 0.42],
-                [start_x + 0.14, start_y + 0.03, 0.42],
-                [start_x + 0.1, start_y + 0.03, 0.42],
+                [start_x + 0.14, start_y + 0.07, 0.45],
+                [start_x + 0.1, start_y + 0.07, 0.45],
+                [start_x + 0.14, start_y + 0.03, 0.45],
+                [start_x + 0.1, start_y + 0.03, 0.45],
             ],
             normals: [
                 [0.0, 0.0, -1.0],
@@ -448,10 +448,10 @@ class Truck {
                 [start_x, start_y + 0.08, 0.5],
                 [start_x + 0.1, start_y + 0.02, 0.5],
                 [start_x, start_y + 0.02, 0.5],
-                [start_x + 0.1, start_y + 0.08, 0.42],
-                [start_x, start_y + 0.08, 0.42],
-                [start_x + 0.1, start_y + 0.02, 0.42],
-                [start_x, start_y + 0.02, 0.42],
+                [start_x + 0.1, start_y + 0.08, 0.45],
+                [start_x, start_y + 0.08, 0.45],
+                [start_x + 0.1, start_y + 0.02, 0.45],
+                [start_x, start_y + 0.02, 0.45],
             ],
             normals: [
                 [0.0, 0.0, -1.0],
@@ -510,13 +510,13 @@ class Log {
     static newLog(start_x, start_y) {
         let section = {
             vertices: [
-                [start_x + 0.2, start_y + 0.08, 0.5],
+                [start_x + 0.1, start_y + 0.08, 0.5],
                 [start_x, start_y + 0.08, 0.5],
-                [start_x + 0.2, start_y + 0.02, 0.5],
-                [start_x, start_y + 0.02, 0.5],
-                [start_x + 0.2, start_y + 0.08, 0.48],
+                [start_x + 0.1, start_y + 0.01, 0.5],
+                [start_x, start_y + 0.01, 0.5],
+                [start_x + 0.1, start_y + 0.08, 0.48],
                 [start_x, start_y + 0.08, 0.48],
-                [start_x + 0.2, start_y + 0.02, 0.48],
+                [start_x + 0.1, start_y + 0.01, 0.48],
                 [start_x, start_y + 0.02, 0.48],
             ],
             normals: [
@@ -571,6 +571,110 @@ class Log {
     }
 }
 
-class Turtle {}
+class Turtle {
+    static newTurtle(start_x, start_y) {
+        let head = {
+            vertices: [
+                [start_x + 0.02, start_y + 0.06, 0.5],
+                [start_x, start_y + 0.06, 0.5],
+                [start_x + 0.02, start_y + 0.04, 0.5],
+                [start_x, start_y + 0.04, 0.5],
+                [start_x + 0.02, start_y + 0.06, 0.48],
+                [start_x, start_y + 0.06, 0.48],
+                [start_x + 0.02, start_y + 0.04, 0.48],
+                [start_x, start_y + 0.04, 0.48],
+            ],
+            normals: [
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+            ],
+            material: {
+                ambient: [0.1, 0.1, 0.1],
+                diffuse: [0.45, 0.25, 0.0],
+                specular: [0.3, 0.3, 0.3],
+                n: 10,
+            },
+            triangles: [
+                [0, 1, 3],
+                [2, 3, 0],
+                [7, 5, 4],
+                [7, 6, 4],
+                [5, 4, 0],
+                [5, 1, 0],
+                [6, 7, 3],
+                [6, 2, 3],
+                [0, 4, 2],
+                [4, 2, 6],
+                [7, 3, 1],
+                [7, 1, 5],
+            ],
+        };
+        let body = {
+            vertices: [
+                [start_x + 0.02, start_y + 0.08, 0.5],
+                [start_x + 0.08, start_y + 0.08, 0.5],
+                [start_x + 0.02, start_y + 0.02, 0.5],
+                [start_x + 0.08, start_y + 0.02, 0.5],
+                [start_x + 0.02, start_y + 0.08, 0.47],
+                [start_x + 0.08, start_y + 0.08, 0.47],
+                [start_x + 0.02, start_y + 0.02, 0.47],
+                [start_x + 0.08, start_y + 0.02, 0.47],
+            ],
+            normals: [
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+            ],
+            material: {
+                ambient: [0.1, 0.1, 0.1],
+                diffuse: [0.2, 0.8, 0.2],
+                specular: [0.3, 0.3, 0.3],
+                n: 10,
+            },
+            triangles: [
+                [0, 1, 3],
+                [2, 3, 0],
+                [7, 5, 4],
+                [7, 6, 4],
+                [5, 4, 0],
+                [5, 1, 0],
+                [6, 7, 3],
+                [6, 2, 3],
+                [0, 4, 2],
+                [4, 2, 6],
+                [7, 3, 1],
+                [7, 1, 5],
+            ],
+        };
+        return new Turtle(head, body, start_x, start_y);
+    }
+    constructor(head, body, start_x, start_y) {
+        this.parts = {
+            head: head,
+            body: body,
+        };
+        this.start_x = start_x;
+        this.start_y = start_y;
+    }
+
+    loadBuffers(gl) {
+        for (const part in this.parts) {
+            loadPartBuffers(this.parts[part], gl);
+        }
+        this.modelMatrix = mat4.create();
+        this.centroid = getPartsCentroid(this.parts);
+    }
+}
 
 export { Frog, Car, Truck, Log, Turtle };

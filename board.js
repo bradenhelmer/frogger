@@ -140,7 +140,7 @@ class Board {
     // Renders frogs to the screen
     renderFrogs(gl, shaderLocs) {
         for (let frog = 0; frog < this.frogs.length; frog++) {
-            for (const part in this.frogs[frog].bodyParts) {
+            for (const part in this.frogs[frog].parts) {
                 gl.uniformMatrix4fv(
                     shaderLocs.modelTransformMatrixUniform,
                     false,
@@ -149,7 +149,7 @@ class Board {
 
                 gl.bindBuffer(
                     gl.ARRAY_BUFFER,
-                    this.frogs[frog].bodyParts[part].vtxBuffer,
+                    this.frogs[frog].parts[part].vtxBuffer,
                 );
                 gl.vertexAttribPointer(
                     shaderLocs.vertexPositionAttrib,
@@ -163,17 +163,17 @@ class Board {
                 gl.uniform3fv(
                     shaderLocs.vertexColorAttrib,
                     new Float32Array(
-                        this.frogs[frog].bodyParts[part].material.diffuse,
+                        this.frogs[frog].parts[part].material.diffuse,
                     ),
                 );
 
                 gl.bindBuffer(
                     gl.ELEMENT_ARRAY_BUFFER,
-                    this.frogs[frog].bodyParts[part].triBuffer,
+                    this.frogs[frog].parts[part].triBuffer,
                 );
                 gl.drawElements(
                     gl.TRIANGLES,
-                    3 * this.frogs[frog].bodyParts[part].triangles.length,
+                    3 * this.frogs[frog].parts[part].triangles.length,
                     gl.UNSIGNED_SHORT,
                     0,
                 );

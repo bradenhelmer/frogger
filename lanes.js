@@ -138,23 +138,32 @@ class LogLane extends WaterLane {
     }
 
     initObjects() {
+        this.objects.push(Log.newLog(0.8, this.start));
         this.objects.push(Log.newLog(0.7, this.start));
+        this.objects.push(Log.newLog(0.3, this.start));
         this.objects.push(Log.newLog(0.2, this.start));
+        this.objects.push(Log.newLog(-0.2, this.start));
         this.objects.push(Log.newLog(-0.3, this.start));
     }
 
     checkLaneBounds() {
-        return;
-        // let lastObj =
-        //     this.objects[
-        //         this.direction === Lane.RIGHT ? this.objects.length - 1 : 0
-        //     ];
-        // let lastXLoc = lastObj.centroid[0];
+        let lastLog =
+            this.objects[
+                this.direction === Lane.RIGHT ? this.objects.length - 1 : 0
+            ];
+        // Get second last log as, they are in groups of 2
+        let secondLastLog =
+            this.objects[
+                this.direction === Lane.RIGHT ? this.objects.length - 2 : 1
+            ];
+        let lastXLocSecondLog = secondLastLog.centroid[0];
 
-        // if (lastXLoc > 1.1) {
-        //     Lane.rotateToBack(lastObj, -1.7);
-        //     this.objects.unshift(this.objects.pop());
-        // }
+        if (lastXLocSecondLog > 1.1) {
+            Lane.rotateToBack(lastLog, -1.5);
+            Lane.rotateToBack(secondLastLog, -1.5);
+            this.objects.push(this.objects.shift());
+            this.objects.push(this.objects.shift());
+        }
     }
 }
 
@@ -162,10 +171,28 @@ class TurtleLane extends WaterLane {
     constructor(direction, start) {
         super(direction, start);
         this.objects = [];
+        this.initObjects();
+    }
+
+    initObjects() {
+        this.objects.push(Turtle.newTurtle(1.3, this.start));
+        this.objects.push(Turtle.newTurtle(1, this.start));
+        this.objects.push(Turtle.newTurtle(0.7, this.start));
+        this.objects.push(Turtle.newTurtle(0.4, this.start));
+        this.objects.push(Turtle.newTurtle(0.1, this.start));
     }
 
     checkLaneBounds() {
-        return;
+        let lastObj =
+            this.objects[
+                this.direction === Lane.RIGHT ? this.objects.length - 1 : 0
+            ];
+        let lastXLoc = lastObj.centroid[0];
+
+        if (lastXLoc < -0.3) {
+            Lane.rotateToBack(lastObj, 1.5);
+            this.objects.unshift(this.objects.pop());
+        }
     }
 }
 
@@ -191,7 +218,7 @@ class TruckLane extends RoadLane {
 
         if (lastXLoc > 1.1) {
             Lane.rotateToBack(lastObj, -1.7);
-            this.objects.unshift(this.objects.pop());
+            this.objects.push(this.objects.shift());
         }
     }
 }
