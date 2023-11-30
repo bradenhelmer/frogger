@@ -8,6 +8,7 @@ class Board {
         this.lanes = lanes;
         this.frogs = [];
         this.newFrog();
+        this.loadEdgeBufffers(gl);
         this.loadLaneBuffers(gl);
         this.loadFrogBuffers(gl);
         this.loadObjectBuffers(gl);
@@ -16,10 +17,88 @@ class Board {
     // Init a new frog.
     newFrog() {
         let start = Math.floor(Math.random() * starts.length) / 10;
-        this.frogs.push(Frog.newFrog(start));
+        let newFrog = Frog.newFrog(start);
+        this.currentFrog = newFrog;
+        this.frogs.push(newFrog);
     }
 
-    // Loads the lane data into GL buffers.
+    // Loads edge buffers on y plane
+    loadEdgeBufffers(gl) {
+        const vertices = [
+            0.0, 11.0, 0.5, 1.0, 11.0, 0.5, 0.0, 1.0, 0.5, 1.0, 1.0, 0.5, 0.0,
+            0.0, 0.5, 1.0, 0.0, 0.5, 0.0, -10.0, 0.5, 1.0, -10.0, 0.5,
+        ];
+        this.edgeVtxBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.edgeVtxBuffer);
+        gl.bufferData(
+            gl.ARRAY_BUFFER,
+            new Float32Array(vertices),
+            gl.STATIC_DRAW,
+        );
+
+        const normals = [
+            0.0,
+            0.0 - 1.0,
+            0.0,
+            0.0 - 1.0,
+            0.0,
+            0.0 - 1.0,
+            0.0,
+            0.0 - 1.0,
+            0.0,
+            0.0 - 1.0,
+            0.0,
+            0.0 - 1.0,
+            0.0,
+            0.0 - 1.0,
+            0.0,
+            0.0 - 1.0,
+        ];
+        this.edgeNrmBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.edgeNrmBuffer);
+        gl.bufferData(
+            gl.ARRAY_BUFFER,
+            new Float32Array(normals),
+            gl.STATIC_DRAW,
+        );
+
+        const triangles = [0, 1, 3, 0, 3, 2, 4, 5, 7, 4, 6, 7];
+        this.edgeTriBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.edgeTriBuffer);
+        gl.bufferData(
+            gl.ELEMENT_ARRAY_BUFFER,
+            new Uint16Array(triangles),
+            gl.STATIC_DRAW,
+        );
+    }
+
+    renderEdges(gl, shaderLocs) {
+        gl.uniformMatrix4fv(
+            shaderLocs.modelTransformMatrixUniform,
+            false,
+            mat4.create(),
+        );
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.edgeVtxBuffer);
+        gl.vertexAttribPointer(
+            shaderLocs.vertexPositionAttrib,
+            3,
+            gl.FLOAT,
+            false,
+            0,
+            0,
+        );
+
+        gl.uniform3fv(
+            shaderLocs.vertexColorAttrib,
+            new Float32Array([0.15, 0.77, 0.0]),
+        );
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.edgeTriBuffer);
+        gl.drawElements(gl.TRIANGLES, 12, gl.UNSIGNED_SHORT, 0);
+    }
+
+    // Loads the lane background data into GL buffers.
     loadLaneBuffers(gl) {
         for (let lane = 0; lane < this.lanes.length; lane++) {
             this.lanes[lane].loadLaneBuffers(gl);
@@ -61,6 +140,12 @@ class Board {
     renderFrogs(gl, shaderLocs) {
         for (let frog = 0; frog < this.frogs.length; frog++) {
             for (const part in this.frogs[frog].bodyParts) {
+                gl.uniformMatrix4fv(
+                    shaderLocs.modelTransformMatrixUniform,
+                    false,
+                    mat4.create(),
+                );
+
                 gl.bindBuffer(
                     gl.ARRAY_BUFFER,
                     this.frogs[frog].bodyParts[part].vtxBuffer,
@@ -262,10 +347,10 @@ class Lane {
     initBackgroundTriangles() {
         this.backgroundTriangles = {
             vertices: [
-                [0.0, this.start, 0.5],
-                [0.0, this.start + 0.1, 0.5],
-                [1.0, this.start + 0.1, 0.5],
-                [1.0, this.start, 0.5],
+                [-10.0, this.start, 0.5],
+                [-10.0, this.start + 0.1, 0.5],
+                [10.0, this.start + 0.1, 0.5],
+                [10.0, this.start, 0.5],
             ],
             normals: [
                 [0.0, 0.0, -1.0],
@@ -397,10 +482,27 @@ class LogLane extends WaterLane {
     constructor(direction, start) {
         super(direction, start);
         this.objects = [];
+        this.initObjects();
+    }
+
+    initObjects() {
+        this.objects.push(Log.newLog(0.7, this.start));
+        this.objects.push(Log.newLog(0.2, this.start));
+        this.objects.push(Log.newLog(-0.3, this.start));
     }
 
     checkLaneBounds() {
         return;
+        // let lastObj =
+        //     this.objects[
+        //         this.direction === Lane.RIGHT ? this.objects.length - 1 : 0
+        //     ];
+        // let lastXLoc = lastObj.centroid[0];
+
+        // if (lastXLoc > 1.1) {
+        //     Lane.rotateToBack(lastObj, -1.7);
+        //     this.objects.unshift(this.objects.pop());
+        // }
     }
 }
 
@@ -952,10 +1054,10 @@ class Car {
             this.parts[part].triBuffer = triBuffer;
         }
         this.modelMatrix = mat4.create();
-        this.getCarCentroid();
+        this.getCentroid();
     }
 
-    getCarCentroid() {
+    getCentroid() {
         let verticescount = 0;
         let centroid = [0, 0, 0];
         for (const part in this.parts) {
@@ -1046,7 +1148,7 @@ class Truck {
             ],
             material: {
                 ambient: [0.1, 0.1, 0.1],
-                diffuse: [0.0, 1.0, 0.0],
+                diffuse: [0.3, 0.3, 0.3],
                 specular: [0.3, 0.3, 0.3],
                 n: 10,
             },
@@ -1179,10 +1281,10 @@ class Truck {
             this.parts[part].triBuffer = triBuffer;
         }
         this.modelMatrix = mat4.create();
-        this.getTruckCentroid();
+        this.getCentroid();
     }
 
-    getTruckCentroid() {
+    getCentroid() {
         let verticescount = 0;
         let centroid = [0, 0, 0];
         for (const part in this.parts) {
@@ -1205,13 +1307,151 @@ class Truck {
     }
 }
 
-class Log {}
+class Log {
+    static newLog(start_x, start_y) {
+        let section = {
+            vertices: [
+                [start_x + 0.2, start_y + 0.08, 0.5],
+                [start_x, start_y + 0.08, 0.5],
+                [start_x + 0.2, start_y + 0.02, 0.5],
+                [start_x, start_y + 0.02, 0.5],
+                [start_x + 0.2, start_y + 0.08, 0.48],
+                [start_x, start_y + 0.08, 0.48],
+                [start_x + 0.2, start_y + 0.02, 0.48],
+                [start_x, start_y + 0.02, 0.48],
+            ],
+            normals: [
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+            ],
+            material: {
+                ambient: [0.1, 0.1, 0.1],
+                diffuse: [0.45, 0.25, 0.0],
+                specular: [0.3, 0.3, 0.3],
+                n: 10,
+            },
+            triangles: [
+                [0, 1, 3],
+                [2, 3, 0],
+                [7, 5, 4],
+                [7, 6, 4],
+                [5, 4, 0],
+                [5, 1, 0],
+                [6, 7, 3],
+                [6, 2, 3],
+                [0, 4, 2],
+                [4, 2, 6],
+                [7, 3, 1],
+                [7, 1, 5],
+            ],
+        };
+        return new Log(section, start_x, start_y);
+    }
+
+    constructor(section, start_x, start_y) {
+        this.parts = {
+            section: section,
+        };
+        this.start_x = start_x;
+        this.start_y = start_y;
+    }
+
+    loadBuffers(gl) {
+        for (const part in this.parts) {
+            let vtxCoordArr = [];
+            for (
+                let vertex = 0;
+                vertex < this.parts[part].vertices.length;
+                vertex++
+            ) {
+                let vtxToAdd = this.parts[part].vertices[vertex];
+                vtxCoordArr.push(vtxToAdd[0], vtxToAdd[1], vtxToAdd[2]);
+            }
+
+            let vtxBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vtxBuffer);
+            gl.bufferData(
+                gl.ARRAY_BUFFER,
+                new Float32Array(vtxCoordArr),
+                gl.STATIC_DRAW,
+            );
+            this.parts[part].vtxBuffer = vtxBuffer;
+
+            let nrmCoordArr = [];
+            for (
+                let normal = 0;
+                normal < this.parts[part].normals.length;
+                normal++
+            ) {
+                let nrmToAdd = this.parts[part].normals[normal];
+                nrmCoordArr.push(nrmToAdd[0], nrmToAdd[1], nrmToAdd[2]);
+            }
+
+            let nrmBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, nrmBuffer);
+            gl.bufferData(
+                gl.ARRAY_BUFFER,
+                new Float32Array(nrmCoordArr),
+                gl.STATIC_DRAW,
+            );
+            this.parts[part].nrmBuffer = nrmBuffer;
+
+            let triCoordArr = [];
+            for (
+                let triangle = 0;
+                triangle < this.parts[part].triangles.length;
+                triangle++
+            ) {
+                let triToAdd = this.parts[part].triangles[triangle];
+                triCoordArr.push(triToAdd[0], triToAdd[1], triToAdd[2]);
+            }
+            let triBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, triBuffer);
+            gl.bufferData(
+                gl.ELEMENT_ARRAY_BUFFER,
+                new Uint16Array(triCoordArr),
+                gl.STATIC_DRAW,
+            );
+            this.parts[part].triBuffer = triBuffer;
+        }
+        this.modelMatrix = mat4.create();
+        this.getCentroid();
+    }
+
+    getCentroid() {
+        let verticescount = 0;
+        let centroid = [0, 0, 0];
+        for (const part in this.parts) {
+            verticescount += this.parts[part].vertices.length;
+            for (
+                let vert = 0;
+                vert < this.parts[part].vertices.length;
+                vert++
+            ) {
+                centroid[0] += this.parts[part].vertices[vert][0];
+                centroid[1] += this.parts[part].vertices[vert][1];
+                centroid[2] += this.parts[part].vertices[vert][2];
+            }
+        }
+        this.centroid = new vec3.fromValues(
+            (centroid[0] /= verticescount),
+            (centroid[1] /= verticescount),
+            (centroid[2] /= verticescount),
+        );
+    }
+}
 
 class Turtle {}
 
 export {
-    Board,
     Lane,
+    Board,
     WaterLane,
     RoadLane,
     HomeLane,

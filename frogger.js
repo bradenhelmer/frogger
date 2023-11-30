@@ -31,7 +31,7 @@ const FAR = 300;
 var gl;
 
 // Init viewing Vectors
-var eye = new vec3.fromValues(0.5, 0.5, 0.0);
+var eye = new vec3.fromValues(0.5, -0.5, 0.0);
 var lookUp = new vec3.fromValues(0.0, 1.0, 0.0);
 var lookAt = new vec3.fromValues(0.5, 0.5, 1.0);
 
@@ -216,6 +216,7 @@ function render() {
         false,
         modelViewMatrix,
     );
+    gameBoard.renderEdges(gl, shaderLocs);
     gameBoard.renderLaneBackgrounds(gl, shaderLocs);
     gameBoard.renderFrogs(gl, shaderLocs);
     gameBoard.renderLaneObjects(gl, shaderLocs);
