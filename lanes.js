@@ -1,4 +1,5 @@
 // LANES
+import { loadPartBuffers } from "./helpers.js";
 import { Log, Car, Truck, Turtle } from "./objects.js";
 class Lane {
     // Lane Directions
@@ -72,62 +73,7 @@ class Lane {
 
     // Loads the background buffers for the current lane
     loadLaneBuffers(gl) {
-        // Vertices
-        this.vtxCoordArr = [];
-        for (
-            let vertex = 0;
-            vertex < this.backgroundTriangles.vertices.length;
-            vertex++
-        ) {
-            let vtxToAdd = this.backgroundTriangles.vertices[vertex];
-            this.vtxCoordArr.push(vtxToAdd[0], vtxToAdd[1], vtxToAdd[2]);
-        }
-
-        this.vtxBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.vtxBuffer);
-        gl.bufferData(
-            gl.ARRAY_BUFFER,
-            new Float32Array(this.vtxCoordArr),
-            gl.STATIC_DRAW,
-        );
-
-        // Normals
-        this.nrmArr = [];
-        for (
-            let normal = 0;
-            normal < this.backgroundTriangles.normals.length;
-            normal++
-        ) {
-            let nrmToAdd = this.backgroundTriangles.normals[normal];
-            this.nrmArr.push(nrmToAdd[0], nrmToAdd[1], nrmToAdd[2]);
-        }
-
-        this.nrmBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.nrmBuffer);
-        gl.bufferData(
-            gl.ARRAY_BUFFER,
-            new Float32Array(this.nrmArr),
-            gl.STATIC_DRAW,
-        );
-
-        // Triangles
-        this.triArr = [];
-        for (
-            let triangle = 0;
-            triangle < this.backgroundTriangles.triangles.length;
-            triangle++
-        ) {
-            let triToAdd = this.backgroundTriangles.triangles[triangle];
-            this.triArr.push(triToAdd[0], triToAdd[1], triToAdd[2]);
-        }
-
-        this.triBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.triBuffer);
-        gl.bufferData(
-            gl.ELEMENT_ARRAY_BUFFER,
-            new Uint16Array(this.triArr),
-            gl.STATIC_DRAW,
-        );
+        loadPartBuffers(this.backgroundTriangles, gl);
     }
 }
 

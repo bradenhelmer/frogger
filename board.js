@@ -184,7 +184,10 @@ class Board {
     // Renders the lane backgrounds
     renderLaneBackgrounds(gl, shaderLocs) {
         for (let lane = 0; lane < this.lanes.length; lane++) {
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.lanes[lane].vtxBuffer);
+            gl.bindBuffer(
+                gl.ARRAY_BUFFER,
+                this.lanes[lane].backgroundTriangles.vtxBuffer,
+            );
 
             // TODO might change in the future for moving lanes
             gl.uniformMatrix4fv(
@@ -209,7 +212,10 @@ class Board {
                 ),
             );
 
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.lanes[lane].triBuffer);
+            gl.bindBuffer(
+                gl.ELEMENT_ARRAY_BUFFER,
+                this.lanes[lane].backgroundTriangles.triBuffer,
+            );
             gl.drawElements(
                 gl.TRIANGLES,
                 3 * this.lanes[lane].backgroundTriangles.triangles.length,
