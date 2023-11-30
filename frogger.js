@@ -6,15 +6,16 @@
 // Implmentation of classic Frogger game with WebGL and GLSL.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 import {
-    Board,
     Lane,
-    HomeLane,
-    SafeLane,
     LogLane,
     TurtleLane,
-    TruckLane,
     CarsLane,
-} from "./objects.js";
+    TruckLane,
+    SafeLane,
+    HomeLane,
+} from "./lanes.js";
+
+import { Board } from "./board.js";
 
 // Constant globals
 const WEBGLID = "webgl";
@@ -31,8 +32,8 @@ const FAR = 300;
 var gl;
 
 // Init viewing Vectors
-var eye = new vec3.fromValues(0.5, -0.5, 0.0);
 var lookUp = new vec3.fromValues(0.0, 1.0, 0.0);
+var eye = new vec3.fromValues(0.5, -0.5, 0.0);
 var lookAt = new vec3.fromValues(0.5, 0.5, 1.0);
 
 // Init global matrices
