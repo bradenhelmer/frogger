@@ -1,6 +1,6 @@
 // LANES
 import { loadPartBuffers } from "./helpers.js";
-import { Log, Car, Truck, Turtle } from "./objects.js";
+import { Log, Car, Truck, Turtle, LilyPad, ForbiddenGrass } from "./objects.js";
 class Lane {
     // Lane Directions
     static RIGHT = 0;
@@ -111,7 +111,22 @@ class HomeLane extends WaterLane {
     constructor(direction, start) {
         super(direction, start);
         this.material = HomeLane.material;
-        this.initBackgroundTriangles();
+        this.objects = [];
+        this.initObjects();
+    }
+
+    initObjects() {
+        // Lily pads first
+        this.objects.push(ForbiddenGrass.newGrass(0.0, this.start));
+        this.objects.push(LilyPad.newLilyPad(0.1, this.start));
+        this.objects.push(ForbiddenGrass.newGrass(0.2, this.start));
+        this.objects.push(LilyPad.newLilyPad(0.3, this.start));
+        this.objects.push(ForbiddenGrass.newGrass(0.4, this.start));
+        this.objects.push(LilyPad.newLilyPad(0.5, this.start));
+        this.objects.push(ForbiddenGrass.newGrass(0.6, this.start));
+        this.objects.push(LilyPad.newLilyPad(0.7, this.start));
+        this.objects.push(ForbiddenGrass.newGrass(0.8, this.start));
+        this.objects.push(LilyPad.newLilyPad(0.9, this.start));
     }
 }
 

@@ -1,6 +1,12 @@
 // Core board object.
-import { Lane, CarsLane, TruckLane, LogLane, TurtleLane } from "./lanes.js";
-
+import {
+    Lane,
+    CarsLane,
+    HomeLane,
+    TruckLane,
+    LogLane,
+    TurtleLane,
+} from "./lanes.js";
 import { Frog } from "./objects.js";
 
 class Board {
@@ -17,7 +23,8 @@ class Board {
 
     // Init a new frog.
     newFrog() {
-        let start = Math.floor(Math.random() * Board.yStartPositions.length) / 10;
+        let start =
+            Math.floor(Math.random() * Board.yStartPositions.length) / 10;
         let newFrog = Frog.newFrog(start);
         this.currentFrog = newFrog;
         this.frogs.push(newFrog);
@@ -120,6 +127,7 @@ class Board {
                 case CarsLane:
                 case TruckLane:
                 case LogLane:
+                case HomeLane:
                 case TurtleLane:
                     {
                         for (
@@ -232,6 +240,7 @@ class Board {
                 case CarsLane:
                 case TruckLane:
                 case LogLane:
+                case HomeLane:
                 case TurtleLane: {
                     for (
                         let obj = 0;
@@ -289,7 +298,9 @@ class Board {
                             );
                         }
                     }
-                    this.lanes[lane].checkLaneBounds(gl);
+                    if (this.lanes[lane].direction != Lane.NO_DIRECTION) {
+                        this.lanes[lane].checkLaneBounds(gl);
+                    }
                     break;
                 }
 

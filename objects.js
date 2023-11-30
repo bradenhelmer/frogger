@@ -677,4 +677,138 @@ class Turtle {
     }
 }
 
-export { Frog, Car, Truck, Log, Turtle };
+class LilyPad {
+    static newLilyPad(start_x, start_y) {
+        let pad = {
+            vertices: [
+                [start_x + 0.05, start_y + 0.09, 0.5],
+                [start_x + 0.09, start_y + 0.05, 0.5],
+                [start_x + 0.05, start_y + 0.01, 0.5],
+                [start_x + 0.01, start_y + 0.05, 0.5],
+            ],
+            normals: [
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+            ],
+            material: {
+                ambient: [0.1, 0.1, 0.1],
+                diffuse: [0.173, 0.522, 0.0],
+                specular: [0.3, 0.3, 0.3],
+                n: 10,
+            },
+            triangles: [
+                [0, 1, 3],
+                [1, 2, 3],
+            ],
+        };
+        return new LilyPad(pad, start_x, start_y);
+    }
+
+    constructor(pad, start_x, start_y) {
+        this.parts = {
+            pad: pad,
+        };
+        this.start_x = start_x;
+        this.start_y = start_y;
+    }
+
+    loadBuffers(gl) {
+        for (const part in this.parts) {
+            loadPartBuffers(this.parts[part], gl);
+        }
+        this.modelMatrix = mat4.create();
+        this.centroid = getPartsCentroid(this.parts);
+    }
+}
+class ForbiddenGrass {
+    static newGrass(start_x, start_y) {
+        let dirt = {
+            vertices: [
+                [start_x + 0.1, start_y + 0.1, 0.5],
+                [start_x, start_y + 0.1, 0.5],
+                [start_x + 0.1, start_y, 0.5],
+                [start_x, start_y, 0.5],
+                [start_x + 0.1, start_y + 0.1, 0.4875],
+                [start_x, start_y + 0.1, 0.4875],
+                [start_x + 0.1, start_y, 0.4875],
+                [start_x, start_y, 0.4875],
+            ],
+            normals: [
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+            ],
+            material: {
+                ambient: [0.1, 0.1, 0.1],
+                diffuse: [0.45, 0.25, 0.0],
+                specular: [0.3, 0.3, 0.3],
+                n: 10,
+            },
+            triangles: [
+                [0, 1, 3],
+                [2, 3, 0],
+                [7, 5, 4],
+                [7, 6, 4],
+                [5, 4, 0],
+                [5, 1, 0],
+                [6, 7, 3],
+                [6, 2, 3],
+                [0, 4, 2],
+                [4, 2, 6],
+                [7, 3, 1],
+                [7, 1, 5],
+            ],
+        };
+        let grass = {
+            vertices: [
+                [start_x + 0.1, start_y + 0.1, 0.4875],
+                [start_x, start_y + 0.1, 0.4875],
+                [start_x + 0.1, start_y, 0.4875],
+                [start_x, start_y, 0.4875],
+                [start_x + 0.1, start_y + 0.1, 0.475],
+                [start_x, start_y + 0.1, 0.475],
+                [start_x + 0.1, start_y, 0.475],
+                [start_x, start_y, 0.475],
+            ],
+            normals: [
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+            ],
+            material: {
+                ambient: [0.1, 0.1, 0.1],
+                diffuse: [0.173, 0.522, 0.0],
+                specular: [0.3, 0.3, 0.3],
+                n: 10,
+            },
+            triangles: [
+                [0, 1, 3],
+                [0, 2, 3],
+            ],
+        };
+
+        return new ForbiddenGrass(dirt, grass, start_x, start_y);
+    }
+    constructor(dirt, grass, start_x, start_y) {
+        this.parts = {
+            dirt: dirt,
+            grass: grass,
+        };
+        this.start_x = start_x;
+        this.start_y = start_y;
+    }
+
+    loadBuffers(gl) {
+        for (const part in this.parts) {
+            loadPartBuffers(this.parts[part], gl);
+        }
+        this.modelMatrix = mat4.create();
+        this.centroid = getPartsCentroid(this.parts);
+    }
+}
+
+export { Frog, Car, Truck, Log, Turtle, LilyPad, ForbiddenGrass };
