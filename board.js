@@ -4,7 +4,7 @@ import { Lane, CarsLane, TruckLane, LogLane, TurtleLane } from "./lanes.js";
 import { Frog } from "./objects.js";
 
 class Board {
-    static starts = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
+    static yStartPositions = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
     constructor(lanes, gl) {
         this.lanes = lanes;
         this.frogs = [];
@@ -17,7 +17,7 @@ class Board {
 
     // Init a new frog.
     newFrog() {
-        let start = Math.floor(Math.random() * Board.starts.length) / 10;
+        let start = Math.floor(Math.random() * Board.yStartPositions.length) / 10;
         let newFrog = Frog.newFrog(start);
         this.currentFrog = newFrog;
         this.frogs.push(newFrog);

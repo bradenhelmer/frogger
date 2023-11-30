@@ -3,7 +3,7 @@
 // Braden Helmer
 // NCSU CSC 561 - Prog 5
 // December 11th, 2023
-// Implmentation of classic Frogger game with WebGL and GLSL.
+// Implementation of classic Frogger game with WebGL and GLSL.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 import {
     Lane,
@@ -93,6 +93,7 @@ function initWebGL() {
 // Creates game board with initial state
 function initGameBoard() {
     let lanes = [
+        // The numbers here correspond to the Y value at which this lane is starting.
         new HomeLane(Lane.NO_DIRECTION, 0.9),
         new LogLane(Lane.LEFT, 0.8),
         new TurtleLane(Lane.RIGHT, 0.7),

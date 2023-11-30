@@ -499,86 +499,10 @@ class Truck {
 
     loadBuffers(gl) {
         for (const part in this.parts) {
-            let vtxCoordArr = [];
-            for (
-                let vertex = 0;
-                vertex < this.parts[part].vertices.length;
-                vertex++
-            ) {
-                let vtxToAdd = this.parts[part].vertices[vertex];
-                vtxCoordArr.push(vtxToAdd[0], vtxToAdd[1], vtxToAdd[2]);
-            }
-
-            let vtxBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, vtxBuffer);
-            gl.bufferData(
-                gl.ARRAY_BUFFER,
-                new Float32Array(vtxCoordArr),
-                gl.STATIC_DRAW,
-            );
-            this.parts[part].vtxBuffer = vtxBuffer;
-
-            let nrmCoordArr = [];
-            for (
-                let normal = 0;
-                normal < this.parts[part].normals.length;
-                normal++
-            ) {
-                let nrmToAdd = this.parts[part].normals[normal];
-                nrmCoordArr.push(nrmToAdd[0], nrmToAdd[1], nrmToAdd[2]);
-            }
-
-            let nrmBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, nrmBuffer);
-            gl.bufferData(
-                gl.ARRAY_BUFFER,
-                new Float32Array(nrmCoordArr),
-                gl.STATIC_DRAW,
-            );
-            this.parts[part].nrmBuffer = nrmBuffer;
-
-            let triCoordArr = [];
-            for (
-                let triangle = 0;
-                triangle < this.parts[part].triangles.length;
-                triangle++
-            ) {
-                let triToAdd = this.parts[part].triangles[triangle];
-                triCoordArr.push(triToAdd[0], triToAdd[1], triToAdd[2]);
-            }
-            let triBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, triBuffer);
-            gl.bufferData(
-                gl.ELEMENT_ARRAY_BUFFER,
-                new Uint16Array(triCoordArr),
-                gl.STATIC_DRAW,
-            );
-            this.parts[part].triBuffer = triBuffer;
+            loadPartBuffers(this.parts[part], gl);
         }
         this.modelMatrix = mat4.create();
-        this.getCentroid();
-    }
-
-    getCentroid() {
-        let verticescount = 0;
-        let centroid = [0, 0, 0];
-        for (const part in this.parts) {
-            verticescount += this.parts[part].vertices.length;
-            for (
-                let vert = 0;
-                vert < this.parts[part].vertices.length;
-                vert++
-            ) {
-                centroid[0] += this.parts[part].vertices[vert][0];
-                centroid[1] += this.parts[part].vertices[vert][1];
-                centroid[2] += this.parts[part].vertices[vert][2];
-            }
-        }
-        this.centroid = new vec3.fromValues(
-            (centroid[0] /= verticescount),
-            (centroid[1] /= verticescount),
-            (centroid[2] /= verticescount),
-        );
+        this.centroid = getPartsCentroid(this.parts);
     }
 }
 
