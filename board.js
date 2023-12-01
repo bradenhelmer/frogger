@@ -152,7 +152,7 @@ class Board {
                 gl.uniformMatrix4fv(
                     shaderLocs.modelTransformMatrixUniform,
                     false,
-                    mat4.create(),
+                    this.frogs[frog].modelMatrix,
                 );
 
                 gl.bindBuffer(
@@ -308,6 +308,45 @@ class Board {
                     break;
             }
         }
+    }
+    handleFrogMoveUp() {
+        mat4.multiply(
+            this.currentFrog.modelMatrix,
+            mat4.fromTranslation(mat4.create(), vec3.fromValues(0, 0.1, 0)),
+            this.currentFrog.modelMatrix,
+        );
+
+        this.currentFrog.centroid[1] += 0.1;
+    }
+
+    handleFrogMoveDown() {
+        mat4.multiply(
+            this.currentFrog.modelMatrix,
+            mat4.fromTranslation(mat4.create(), vec3.fromValues(0, -0.1, 0)),
+            this.currentFrog.modelMatrix,
+        );
+
+        this.currentFrog.centroid[1] -= 0.1;
+    }
+
+    handleFrogMoveRight() {
+        mat4.multiply(
+            this.currentFrog.modelMatrix,
+            mat4.fromTranslation(mat4.create(), vec3.fromValues(-0.05, 0, 0)),
+            this.currentFrog.modelMatrix,
+        );
+
+        this.currentFrog.centroid[0] -= 0.05;
+    }
+
+    handleFrogMoveLeft() {
+        mat4.multiply(
+            this.currentFrog.modelMatrix,
+            mat4.fromTranslation(mat4.create(), vec3.fromValues(0.05, 0, 0)),
+            this.currentFrog.modelMatrix,
+        );
+
+        this.currentFrog.centroid[0] += 0.05;
     }
 }
 export { Board };

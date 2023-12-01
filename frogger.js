@@ -25,8 +25,7 @@ const WIN_LEFT = 0.0;
 const WIN_RIGHT = 1.0;
 const WIN_BOTTOM = 0.0;
 const WIN_TOP = 1.0;
-const NEAR = 0.5;
-const FAR = 300;
+const NEAR = 0.5; const FAR = 300;
 
 // WebGL Object
 var gl;
@@ -225,11 +224,34 @@ function render() {
     gameBoard.renderLaneObjects(gl, shaderLocs);
 }
 
+// Sets up key event listeners for frog movements.
+function setupFrogControls() {
+    document.addEventListener("keydown", function (event) {
+        switch (event.key) {
+            case "ArrowUp":
+                gameBoard.handleFrogMoveUp();
+                break;
+            case "ArrowDown":
+                gameBoard.handleFrogMoveDown();
+                break;
+            case "ArrowRight":
+                gameBoard.handleFrogMoveRight(render);
+                break;
+            case "ArrowLeft":
+                gameBoard.handleFrogMoveLeft();
+                break;
+            default:
+                break;
+        }
+    });
+}
+
 main();
-// Main execution
+
 function main() {
     initWebGL();
     initGameBoard();
     setupShaders();
+    setupFrogControls();
     render();
 }
