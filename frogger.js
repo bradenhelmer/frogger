@@ -39,6 +39,11 @@ var eye = new vec3.fromValues(0.5, 0.2, -1.0);
 // var eye = new vec3.fromValues(0.5, -0.05, -0.05);
 var lookAt = new vec3.fromValues(0.5, 0.5, 0.0);
 
+const light = {
+    position: new vec3.fromValues(-0.5, 1.5, -0.5),
+    value: new vec3.fromValues(1.0, 1.0, 1.0),
+};
+
 // Init global matrices
 var modelViewMatrix = mat4.create();
 var modelProjectionMatrix = mat4.create();
@@ -49,8 +54,15 @@ var gameBoard = null;
 
 // Shader Locations
 var shaderLocs = {
+    eyePositionUniform: null,
     vertexPositionAttrib: null,
-    vertexColorAttrib: null,
+    vertexNormalAttrib: null,
+    vertexDiffuseUniform: null,
+    vertexAmbientUniform: null,
+    vertexSpecularUniform: null,
+    vertexReflectivityUniform: null,
+    lightPositionUniform: null,
+    lightValueUniform: null,
     modelViewMatrixUniform: null,
     modelProjectionMatrixUniform: null,
     modelTransformMatrixUniform: null,
@@ -123,32 +135,68 @@ function initGameBoard() {
 }
 
 function setupShaders() {
-    // define fragment shader in essl using es6 template strings
     var fShaderCode = `
-        varying lowp vec3 vColor;
+        varying highp vec3 diffuseProduct, ambientProduct, specularProduct;
+        varying highp float reflectivity;
+        varying highp vec3 L, N, V;
+
+        mediump vec4 blinn_phong() {
+            mediump vec4 ambient = vec4(ambientProduct, 1.0);
+            mediump vec4 diffuse = vec4(diffuseProduct * max(dot(N, L), 0.0), 1.0);
+            mediump vec3 H = normalize(L + V);
+            mediump vec4 specular = vec4(specularProduct * max(pow(dot(N, H), reflectivity), 0.0), 1.0);
+            mediump vec4 color = vec4((ambient + diffuse + specular).xyz, 1.0);
+            return vec4(diffuseProduct, 1.0);
+        }
 
         void main(void) {
-            gl_FragColor = vec4(vColor, 1.0);
+            gl_FragColor = blinn_phong();
         }
     `;
 
-    // define vertex shader in essl using es6 template strings
     var vShaderCode = `
         attribute vec3 vertexPosition;
-        uniform vec3 vertexColor;
+        attribute vec3 vertexNormal;
+        uniform vec3 vertexDiffuse, vertexAmbient, vertexSpecular;
+        uniform float vertexReflectivity;
 
-        varying lowp vec3 vColor;
+        varying highp vec3 diffuseProduct, ambientProduct, specularProduct;
+        varying highp float reflectivity;
+        varying highp vec3 L, N, V;
+
         uniform mat4 modelViewMatrix;
         uniform mat4 modelProjectionMatrix;
         uniform mat4 modelTransformMatrix;
+        uniform mat4 normalMatrix;
+
+        uniform vec3 lightValue;
+        uniform vec3 lightPosition;
+        uniform vec3 eyePosition;
+
+        void setUpVectors() { 
+            vec3 newPosition = (modelViewMatrix * modelTransformMatrix * vec4(vertexPosition, 1.0)).xyz;
+            vec3 newLightPosition = (modelViewMatrix * vec4(lightPosition, 1.0)).xyz;
+            L = normalize(newLightPosition - newPosition);
+            N = (normalMatrix * modelTransformMatrix * vec4(vertexNormal, 0.0)).xyz;
+            N = normalize(N);
+            V = normalize(eyePosition - vertexPosition);
+        }
+
+        void setUpLightingProducts() {
+            diffuseProduct = vertexDiffuse * lightValue;
+            ambientProduct = vertexAmbient * lightValue;
+            specularProduct = vertexSpecular * lightValue;
+            reflectivity = vertexReflectivity;
+        }
 
         void main(void) {
+            setUpLightingProducts();
+            setUpVectors();
             gl_Position = 
                 modelProjectionMatrix *
                 modelViewMatrix *
                 modelTransformMatrix *
                 vec4(vertexPosition, 1.0);
-            vColor = vertexColor;
         }
     `;
 
@@ -201,15 +249,53 @@ function setupShaders() {
                     "modelTransformMatrix",
                 );
 
+                shaderLocs.normalMatrixUniform = gl.getUniformLocation(
+                    shaderProgram,
+                    "normalMatrix",
+                );
+
+                shaderLocs.lightValueUniform = gl.getUniformLocation(
+                    shaderProgram,
+                    "lightValue",
+                );
+
+                shaderLocs.lightPositionUniform = gl.getUniformLocation(
+                    shaderProgram,
+                    "lightPosition",
+                );
+
+                shaderLocs.eyePositionUniform = gl.getUniformLocation(
+                    shaderProgram,
+                    "eyePosition",
+                );
+
                 shaderLocs.vertexPositionAttrib = gl.getAttribLocation(
                     shaderProgram,
                     "vertexPosition",
                 );
                 gl.enableVertexAttribArray(shaderLocs.vertexPositionAttrib);
 
-                shaderLocs.vertexColorAttrib = gl.getUniformLocation(
+                shaderLocs.vertexNormalAttrib = gl.getAttribLocation(
                     shaderProgram,
-                    "vertexColor",
+                    "vertexNormal",
+                );
+                gl.enableVertexAttribArray(shaderLocs.vertexPositionAttrib);
+
+                shaderLocs.vertexDiffuseUniform = gl.getUniformLocation(
+                    shaderProgram,
+                    "vertexDiffuse",
+                );
+                shaderLocs.vertexAmbientUniform = gl.getUniformLocation(
+                    shaderProgram,
+                    "vertexAmbient",
+                );
+                shaderLocs.vertexSpecularUniform = gl.getUniformLocation(
+                    shaderProgram,
+                    "vertexSpecular",
+                );
+                shaderLocs.vertexReflectivityUniform = gl.getUniformLocation(
+                    shaderProgram,
+                    "vertexReflectivity",
                 );
             }
         }
@@ -233,7 +319,14 @@ function render() {
         false,
         modelViewMatrix,
     );
-    // gameBoard.renderEdges(gl, shaderLocs);
+
+    mat4.invert(normalMatrix, modelViewMatrix);
+    mat4.transpose(normalMatrix, normalMatrix);
+    gl.uniformMatrix4fv(shaderLocs.normalMatrixUniform, false, normalMatrix);
+
+    gl.uniform3fv(shaderLocs.lightValueUniform, light.value);
+    gl.uniform3fv(shaderLocs.lightPositionUniform, light.position);
+    gl.uniform3fv(shaderLocs.eyePositionUniform, eye);
     gameBoard.renderLaneBackgrounds(gl, shaderLocs);
     gameBoard.renderFrogs(gl, shaderLocs);
     gameBoard.renderLaneObjects(gl, shaderLocs);
@@ -247,26 +340,26 @@ function playAgain() {
 }
 
 function keyDowns(event) {
-        switch (event.key) {
-            case "ArrowUp":
-                gameBoard.handleFrogMoveUp();
-                gameBoard.checkLaneCollisons(gl);
-                break;
-            case "ArrowDown":
-                gameBoard.handleFrogMoveDown();
-                gameBoard.checkLaneCollisons(gl);
-                break;
-            case "ArrowRight":
-                gameBoard.handleFrogMoveRight(render);
-                gameBoard.checkLaneCollisons(gl);
-                break;
-            case "ArrowLeft":
-                gameBoard.handleFrogMoveLeft();
-                gameBoard.checkLaneCollisons(gl);
-                break;
-            default:
-                break;
-        }
+    switch (event.key) {
+        case "ArrowUp":
+            gameBoard.handleFrogMoveUp();
+            gameBoard.checkLaneCollisons(gl);
+            break;
+        case "ArrowDown":
+            gameBoard.handleFrogMoveDown();
+            gameBoard.checkLaneCollisons(gl);
+            break;
+        case "ArrowRight":
+            gameBoard.handleFrogMoveRight(render);
+            gameBoard.checkLaneCollisons(gl);
+            break;
+        case "ArrowLeft":
+            gameBoard.handleFrogMoveLeft();
+            gameBoard.checkLaneCollisons(gl);
+            break;
+        default:
+            break;
+    }
 }
 
 // Sets up key event listeners for frog movements.
@@ -287,4 +380,4 @@ function main() {
     render();
 }
 
-export {keyDowns};
+export { keyDowns };

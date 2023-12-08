@@ -73,6 +73,8 @@ class Lane {
             normals: [
                 [0.0, 0.0, -1.0],
                 [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
+                [0.0, 0.0, -1.0],
             ],
             material: this.material,
             triangles: [
@@ -140,7 +142,6 @@ class HomeLane extends WaterLane {
         this.objects.push(LilyPad.newLilyPad(0.9, this.start));
     }
 
-    // If
     checkCollision(frog) {
         for (let obj = 0; obj < this.objects.length; obj++) {
             const distance = frog.calculateDistance(this.objects[obj]);

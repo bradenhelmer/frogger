@@ -99,11 +99,40 @@ class Board {
                     0,
                 );
 
+                gl.bindBuffer(
+                    gl.ARRAY_BUFFER,
+                    this.frogs[frog].parts[part].nrmBuffer,
+                );
+                gl.vertexAttribPointer(
+                    shaderLocs.vertexNormalAttrib,
+                    3,
+                    gl.FLOAT,
+                    false,
+                    0,
+                    0,
+                );
+
                 gl.uniform3fv(
-                    shaderLocs.vertexColorAttrib,
+                    shaderLocs.vertexDiffuseUniform,
                     new Float32Array(
                         this.frogs[frog].parts[part].material.diffuse,
                     ),
+                );
+                gl.uniform3fv(
+                    shaderLocs.vertexAmbientUniform,
+                    new Float32Array(
+                        this.frogs[frog].parts[part].material.ambient,
+                    ),
+                );
+                gl.uniform3fv(
+                    shaderLocs.vertexSpecularUniform,
+                    new Float32Array(
+                        this.frogs[frog].parts[part].material.specular,
+                    ),
+                );
+                gl.uniform1f(
+                    shaderLocs.vertexReflectivityUniform,
+                    this.frogs[frog].parts[part].material.n,
                 );
 
                 gl.bindBuffer(
@@ -123,18 +152,16 @@ class Board {
     // Renders the lane backgrounds
     renderLaneBackgrounds(gl, shaderLocs) {
         for (let lane = 0; lane < this.lanes.length; lane++) {
-            gl.bindBuffer(
-                gl.ARRAY_BUFFER,
-                this.lanes[lane].backgroundTriangles.vtxBuffer,
-            );
-
-            // TODO might change in the future for moving lanes
             gl.uniformMatrix4fv(
                 shaderLocs.modelTransformMatrixUniform,
                 false,
                 mat4.create(),
             );
 
+            gl.bindBuffer(
+                gl.ARRAY_BUFFER,
+                this.lanes[lane].backgroundTriangles.vtxBuffer,
+            );
             gl.vertexAttribPointer(
                 shaderLocs.vertexPositionAttrib,
                 3,
@@ -144,11 +171,40 @@ class Board {
                 0,
             );
 
+            gl.bindBuffer(
+                gl.ARRAY_BUFFER,
+                this.lanes[lane].backgroundTriangles.nrmBuffer,
+            );
+            gl.vertexAttribPointer(
+                shaderLocs.vertexNormalAttrib,
+                3,
+                gl.FLOAT,
+                false,
+                0,
+                0,
+            );
+
             gl.uniform3fv(
-                shaderLocs.vertexColorAttrib,
+                shaderLocs.vertexDiffuseUniform,
                 new Float32Array(
                     this.lanes[lane].backgroundTriangles.material.diffuse,
                 ),
+            );
+            gl.uniform3fv(
+                shaderLocs.vertexAmbientUniform,
+                new Float32Array(
+                    this.lanes[lane].backgroundTriangles.material.ambient,
+                ),
+            );
+            gl.uniform3fv(
+                shaderLocs.vertexSpecularUniform,
+                new Float32Array(
+                    this.lanes[lane].backgroundTriangles.material.specular,
+                ),
+            );
+            gl.uniform1f(
+                shaderLocs.vertexReflectivityUniform,
+                this.lanes[lane].backgroundTriangles.material.n,
             );
 
             gl.bindBuffer(
@@ -212,9 +268,48 @@ class Board {
                                 0,
                             );
 
+                            gl.bindBuffer(
+                                gl.ARRAY_BUFFER,
+                                this.lanes[lane].objects[obj].parts[part]
+                                    .nrmBuffer,
+                            );
+                            gl.vertexAttribPointer(
+                                shaderLocs.vertexNormalAttrib,
+                                3,
+                                gl.FLOAT,
+                                false,
+                                0,
+                                0,
+                            );
+
                             gl.uniform3fv(
-                                shaderLocs.vertexColorAttrib,
-                                new Float32Array(_part.material.diffuse),
+                                shaderLocs.vertexDiffuseUniform,
+                                new Float32Array(
+                                    this.lanes[lane].objects[obj].parts[
+                                        part
+                                    ].material.diffuse,
+                                ),
+                            );
+                            gl.uniform3fv(
+                                shaderLocs.vertexAmbientUniform,
+                                new Float32Array(
+                                    this.lanes[lane].objects[obj].parts[
+                                        part
+                                    ].material.ambient,
+                                ),
+                            );
+                            gl.uniform3fv(
+                                shaderLocs.vertexSpecularUniform,
+                                new Float32Array(
+                                    this.lanes[lane].objects[obj].parts[
+                                        part
+                                    ].material.specular,
+                                ),
+                            );
+                            gl.uniform1f(
+                                shaderLocs.vertexReflectivityUniform,
+                                this.lanes[lane].objects[obj].parts[part]
+                                    .material.n,
                             );
 
                             gl.bindBuffer(
