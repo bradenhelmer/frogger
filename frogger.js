@@ -14,7 +14,6 @@ import {
     SafeLane,
     HomeLane,
 } from "./lanes.js";
-
 import { Board } from "./board.js";
 
 // Constant globals
@@ -25,16 +24,20 @@ const WIN_LEFT = 0.0;
 const WIN_RIGHT = 1.0;
 const WIN_BOTTOM = 0.0;
 const WIN_TOP = 1.0;
-const NEAR = 0.5; const FAR = 300;
+const NEAR = 1.0;
+const FAR = 300;
 
 // WebGL Object
 var gl;
 
+// Animation request
+var requestId;
+
 // Init viewing Vectors
 var lookUp = new vec3.fromValues(0.0, 1.0, 0.0);
-// var eye = new vec3.fromValues(0.5, 0.5, 0.0);
-var eye = new vec3.fromValues(0.5, -0.5, 0.0);
-var lookAt = new vec3.fromValues(0.5, 0.5, 1.0);
+var eye = new vec3.fromValues(0.5, 0.2, -1.0);
+// var eye = new vec3.fromValues(0.5, -0.05, -0.05);
+var lookAt = new vec3.fromValues(0.5, 0.5, 0.0);
 
 // Init global matrices
 var modelViewMatrix = mat4.create();
@@ -58,6 +61,17 @@ function initWebGL() {
     // Retrieve canvas and webgl context
     let canvas = document.getElementById(WEBGLCANVAS);
     gl = canvas.getContext(WEBGLID);
+
+    canvas.addEventListener(
+        "webglcontextlost",
+        function (event) {
+            event.preventDefault();
+            cancelAnimationFrame(requestId);
+        },
+        false,
+    );
+
+    canvas.addEventListener("webglcontextrestored", main, false);
 
     try {
         // Check for webgl errors
@@ -206,8 +220,9 @@ function setupShaders() {
 
 // Core rendering function
 function render() {
-    requestAnimationFrame(render);
+    requestId = requestAnimationFrame(render);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.enable(gl.DEPTH_TEST);
     gl.uniformMatrix4fv(
         shaderLocs.modelProjectionMatrixUniform,
         false,
@@ -218,32 +233,48 @@ function render() {
         false,
         modelViewMatrix,
     );
-    gameBoard.renderEdges(gl, shaderLocs);
+    // gameBoard.renderEdges(gl, shaderLocs);
     gameBoard.renderLaneBackgrounds(gl, shaderLocs);
     gameBoard.renderFrogs(gl, shaderLocs);
     gameBoard.renderLaneObjects(gl, shaderLocs);
+    gameBoard.checkLaneCollisons(gl);
 }
 
-// Sets up key event listeners for frog movements.
-function setupFrogControls() {
-    document.addEventListener("keydown", function (event) {
+function playAgain() {
+    document.getElementById("play-again-btn").style.visibility = "hidden";
+    document.getElementById("game-status").style.visibility = "hidden";
+    main();
+}
+
+function keyDowns(event) {
         switch (event.key) {
             case "ArrowUp":
                 gameBoard.handleFrogMoveUp();
+                gameBoard.checkLaneCollisons(gl);
                 break;
             case "ArrowDown":
                 gameBoard.handleFrogMoveDown();
+                gameBoard.checkLaneCollisons(gl);
                 break;
             case "ArrowRight":
                 gameBoard.handleFrogMoveRight(render);
+                gameBoard.checkLaneCollisons(gl);
                 break;
             case "ArrowLeft":
                 gameBoard.handleFrogMoveLeft();
+                gameBoard.checkLaneCollisons(gl);
                 break;
             default:
                 break;
         }
-    });
+}
+
+// Sets up key event listeners for frog movements.
+function setupGameControls() {
+    document
+        .getElementById("play-again-btn")
+        .addEventListener("click", playAgain);
+    document.addEventListener("keydown", keyDowns);
 }
 
 main();
@@ -252,6 +283,8 @@ function main() {
     initWebGL();
     initGameBoard();
     setupShaders();
-    setupFrogControls();
+    setupGameControls();
     render();
 }
+
+export {keyDowns};

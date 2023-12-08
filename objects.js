@@ -232,6 +232,7 @@ class Frog {
             lowerRightLeg: lowerRightLeg,
             lowerLeftLeg: lowerLeftLeg,
         };
+        this.onFloatingObject = false;
     }
 
     loadFrogBuffers(gl) {
@@ -242,6 +243,15 @@ class Frog {
         // Set centroid and model matrix
         this.modelMatrix = mat4.create();
         this.centroid = getPartsCentroid(this.parts);
+    }
+
+    // Calculates the distance from the frogs centroid to an
+    // objects centroid for collision purposes.
+    calculateDistance(object) {
+        const x = object.centroid[0] - this.centroid[0];
+        const y = object.centroid[1] - this.centroid[1];
+        const distance = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+        return Math.abs(distance);
     }
 }
 
@@ -423,7 +433,7 @@ class Truck {
             ],
             material: {
                 ambient: [0.1, 0.1, 0.1],
-                diffuse: [0.3, 0.3, 0.3],
+                diffuse: [1.0, 0.0, 0.0],
                 specular: [0.3, 0.3, 0.3],
                 n: 10,
             },
@@ -638,7 +648,7 @@ class Turtle {
             ],
             material: {
                 ambient: [0.1, 0.1, 0.1],
-                diffuse: [0.2, 0.8, 0.2],
+                diffuse: [0.54, 0.60, 0.36],
                 specular: [0.3, 0.3, 0.3],
                 n: 10,
             },
@@ -681,10 +691,10 @@ class LilyPad {
     static newLilyPad(start_x, start_y) {
         let pad = {
             vertices: [
-                [start_x + 0.05, start_y + 0.09, 0.5],
-                [start_x + 0.09, start_y + 0.05, 0.5],
-                [start_x + 0.05, start_y + 0.01, 0.5],
-                [start_x + 0.01, start_y + 0.05, 0.5],
+                [start_x + 0.05, start_y + 0.09, 0.49],
+                [start_x + 0.09, start_y + 0.05, 0.49],
+                [start_x + 0.05, start_y + 0.01, 0.49],
+                [start_x + 0.01, start_y + 0.05, 0.49],
             ],
             normals: [
                 [0.0, 0.0, -1.0],
@@ -764,14 +774,14 @@ class ForbiddenGrass {
         };
         let grass = {
             vertices: [
-                [start_x + 0.1, start_y + 0.1, 0.4875],
-                [start_x, start_y + 0.1, 0.4875],
-                [start_x + 0.1, start_y, 0.4875],
-                [start_x, start_y, 0.4875],
-                [start_x + 0.1, start_y + 0.1, 0.475],
-                [start_x, start_y + 0.1, 0.475],
-                [start_x + 0.1, start_y, 0.475],
-                [start_x, start_y, 0.475],
+                [start_x + 0.1, start_y + 0.1, 0.4873],
+                [start_x, start_y + 0.1, 0.4873],
+                [start_x + 0.1, start_y, 0.4873],
+                [start_x, start_y, 0.4873],
+                [start_x + 0.1, start_y + 0.1, 0.46],
+                [start_x, start_y + 0.1, 0.46],
+                [start_x + 0.1, start_y, 0.46],
+                [start_x, start_y, 0.46],
             ],
             normals: [
                 [0.0, 0.0, -1.0],

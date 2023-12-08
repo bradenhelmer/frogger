@@ -26,7 +26,6 @@ class Lane {
             mat4.fromTranslation(mat4.create(), vec3.fromValues(0.001, 0, 0)),
             object.modelMatrix,
         );
-
         object.centroid[0] += 0.001;
     }
 
@@ -42,6 +41,18 @@ class Lane {
         );
 
         object.centroid[0] += distance;
+    }
+
+    static moveFrog(frog, distance) {
+        mat4.multiply(
+            frog.modelMatrix,
+            mat4.fromTranslation(
+                mat4.create(),
+                vec3.fromValues(0, 0, distance),
+            ),
+            frog.modelMatrix,
+        );
+        frog.centroid[2] += distance;
     }
 
     constructor(direction, start) {
@@ -128,6 +139,24 @@ class HomeLane extends WaterLane {
         this.objects.push(ForbiddenGrass.newGrass(0.8, this.start));
         this.objects.push(LilyPad.newLilyPad(0.9, this.start));
     }
+
+    // If
+    checkCollision(frog) {
+        for (let obj = 0; obj < this.objects.length; obj++) {
+            const distance = frog.calculateDistance(this.objects[obj]);
+            if (distance <= 0.05) {
+                switch (this.objects[obj].constructor) {
+                    case ForbiddenGrass:
+                        return false;
+                    case LilyPad:
+                        return true;
+                    default:
+                        break;
+                }
+            }
+        }
+        return false;
+    }
 }
 
 class SafeLane extends Lane {
@@ -150,6 +179,7 @@ class LogLane extends WaterLane {
         super(direction, start);
         this.objects = [];
         this.initObjects();
+        this.objectHeight = 0.05;
     }
 
     initObjects() {
@@ -180,6 +210,16 @@ class LogLane extends WaterLane {
             this.objects.push(this.objects.shift());
         }
     }
+
+    // If a collision found on log, return the log
+    checkCollision(frog) {
+        for (let i = 0; i < this.objects.length; i++) {
+            if (frog.calculateDistance(this.objects[i]) < 0.05) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
 
 class TurtleLane extends WaterLane {
@@ -187,6 +227,7 @@ class TurtleLane extends WaterLane {
         super(direction, start);
         this.objects = [];
         this.initObjects();
+        this.objectHeight = 0.02;
     }
 
     initObjects() {
@@ -208,6 +249,15 @@ class TurtleLane extends WaterLane {
             Lane.rotateToBack(lastObj, 1.5);
             this.objects.unshift(this.objects.pop());
         }
+    }
+
+    checkCollision(frog) {
+        for (let i = 0; i < this.objects.length; i++) {
+            if (frog.calculateDistance(this.objects[i]) <= 0.05) {
+                return true;
+            }
+        }
+        return false;
     }
 }
 
@@ -235,6 +285,14 @@ class TruckLane extends RoadLane {
             Lane.rotateToBack(lastObj, -1.7);
             this.objects.push(this.objects.shift());
         }
+    }
+    checkCollision(frog) {
+        for (let i = 0; i < this.objects.length; i++) {
+            if (frog.calculateDistance(this.objects[i]) <= 0.1) {
+                return true;
+            }
+        }
+        return false;
     }
 }
 
@@ -264,6 +322,15 @@ class CarsLane extends RoadLane {
             Lane.rotateToBack(lastObj, 1.5);
             this.objects.unshift(this.objects.pop());
         }
+    }
+
+    checkCollision(frog) {
+        for (let i = 0; i < this.objects.length; i++) {
+            if (frog.calculateDistance(this.objects[i]) < 0.05) {
+                return true;
+            }
+        }
+        return false;
     }
 }
 

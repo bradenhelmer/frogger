@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <title>Prog 5: Frogger</title>
     
-    <link type="text/css" rel="stylesheet" href="rasterize.css">
-
     <script type="text/javascript" src="gl-matrix.js"></script>
     <script type="module" src="frogger.js"></script>
   </head>
 
   <body>
     <canvas id="myWebGLCanvas" width="512" height="512"></canvas> 
+    <div id="lives-counter"></div>
+    <h3 id="game-status" style="visibility: hidden;"></h3>
+    <button id="play-again-btn" style="visibility: hidden;">Play Again?</button>
   </body>
 </html>
