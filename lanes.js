@@ -42,18 +42,6 @@ class Lane {
         object.centroid[0] += distance;
     }
 
-    static moveFrog(frog, distance) {
-        mat4.multiply(
-            frog.modelMatrix,
-            mat4.fromTranslation(
-                mat4.create(),
-                vec3.fromValues(0, 0, distance),
-            ),
-            frog.modelMatrix,
-        );
-        frog.centroid[2] += distance;
-    }
-
     constructor(direction, start) {
         this.direction = direction;
         this.start = start;
@@ -348,37 +336,6 @@ class CarsLane extends RoadLane {
     }
 }
 
-class CarsLaneMIYO extends CarsLane {
-    static material = {
-        ambient: [0.1, 0.1, 0.1],
-        diffuse: [0.388, 0.055, 0.196],
-        specular: [0.3, 0.3, 0.3],
-        n: 10,
-    };
-
-    constructor(direction, start) {
-        super(direction, start);
-        this.objects = [];
-        this.material = CarsLaneMIYO.material;
-        this.initObjects();
-    }
-}
-
-class TruckLaneMIYO extends TruckLane {
-    static material = {
-        ambient: [0.1, 0.1, 0.1],
-        diffuse: [0.388, 0.055, 0.196],
-        specular: [0.3, 0.3, 0.3],
-        n: 10,
-    };
-
-    constructor(direction, start) {
-        super(direction, start);
-        this.objects = [];
-        this.material = TruckLaneMIYO.material;
-        super.initObjects();
-    }
-}
 export {
     Lane,
     RoadLane,
@@ -389,7 +346,5 @@ export {
     TruckLane,
     SafeLane,
     SafeLaneMIYO,
-    TruckLaneMIYO,
-    CarsLaneMIYO,
     HomeLane,
 };

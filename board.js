@@ -435,14 +435,12 @@ class Board {
                 break;
             case SafeLane:
                 if (this.currentFrog.onFloatingObject) {
-                    Lane.moveFrog(this.currentFrog, 0.02);
                     this.currentFrog.onFloatingObject = false;
                 }
                 break;
             case CarsLane:
             case TruckLane:
                 if (this.currentFrog.onFloatingObject) {
-                    Lane.moveFrog(this.currentFrog, 0.02);
                     this.currentFrog.onFloatingObject = false;
                 }
                 if (currentLane.checkCollision(this.currentFrog)) {
