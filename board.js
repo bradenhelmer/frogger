@@ -8,7 +8,7 @@ import {
     TurtleLane,
     SafeLane,
 } from "./lanes.js";
-import { Frog, Turtle } from "./objects.js";
+import { Frog, Turtle, Log, LilyPad } from "./objects.js";
 import { keyDowns } from "./frogger.js";
 
 class Board {
@@ -386,16 +386,6 @@ class Board {
         this.currentFrog.centroid[0] += 0.05;
     }
 
-    moveFrogUp() {
-        mat4.multiply(
-            this.currentFrog.modelMatrix,
-            mat4.fromTranslation(mat4.create(), vec3.fromValues(0.0, 0, -0.05)),
-            this.currentFrog.modelMatrix,
-        );
-
-        this.currentFrog.centroid[2] -= 0.05;
-    }
-
     frogDeath(gl) {
         this.lives -= 1;
         this.updateLivesCounter();
@@ -406,12 +396,35 @@ class Board {
         this.newFrog(gl);
     }
 
-    checkLaneCollisons(gl) {
+    moveFrogToObject(object) {
+        const translationVector = vec3.create();
+        vec3.subtract(
+            translationVector,
+            object.centroid,
+            this.currentFrog.centroid,
+        );
+        mat4.translate(
+            this.currentFrog.modelMatrix,
+            this.currentFrog.modelMatrix,
+            translationVector,
+        );
+        vec3.add(
+            this.currentFrog.centroid,
+            this.currentFrog.centroid,
+            translationVector,
+        );
+    }
+
+    checkLaneCollisions(gl, jumping = false) {
         const currentLane = this.lanes[this.currentFrog.currentLane];
         switch (currentLane.constructor) {
             case HomeLane:
-                if (currentLane.checkCollision(this.currentFrog)) {
+                const possiblePad = currentLane.checkCollision(
+                    this.currentFrog,
+                );
+                if (possiblePad instanceof LilyPad) {
                     this.currentFrog.onFloatingObject = false;
+                    this.moveFrogToObject(possiblePad);
                     if (this.frogs.length == 5) {
                         this.handleGameWin();
                     }
@@ -432,21 +445,18 @@ class Board {
                     Lane.moveFrog(this.currentFrog, 0.02);
                     this.currentFrog.onFloatingObject = false;
                 }
-                console.log("Checking lane collision for RoadLane");
                 if (currentLane.checkCollision(this.currentFrog)) {
                     this.frogDeath(gl);
                 }
                 break;
             case LogLane:
             case TurtleLane:
-                console.log("Checking lane collision for WaterLane");
                 const collision = currentLane.checkCollision(this.currentFrog);
-                if (collision) {
+                if (collision instanceof Log || collision instanceof Turtle) {
+                    if (jumping) {
+                        this.moveFrogToObject(collision);
+                    }
                     if (!this.currentFrog.onFloatingObject) {
-                        Lane.moveFrog(
-                            this.currentFrog,
-                            -currentLane.objectHeight,
-                        );
                         this.currentFrog.onFloatingObject = true;
                     } else {
                         break;
@@ -475,6 +485,14 @@ class Board {
         document.getElementById("game-status").style.visibility = "visible";
         document.getElementById("game-status").textContent = "You Win!";
         document.getElementById("play-again-btn").style.visibility = "visible";
+    }
+
+    gameReset(gl) {
+        this.frogs = [];
+        this.lives = 5;
+        this.newFrog(gl);
+        this.updateLivesCounter();
+        document.addEventListener("keydown", keyDowns);
     }
 }
 export { Board };

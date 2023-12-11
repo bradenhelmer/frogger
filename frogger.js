@@ -12,7 +12,10 @@ import {
     CarsLane,
     TruckLane,
     SafeLane,
+    SafeLaneMIYO,
     HomeLane,
+    RoadLane,
+    WaterLane,
 } from "./lanes.js";
 import { Board } from "./board.js";
 
@@ -24,7 +27,7 @@ const WIN_LEFT = 0.0;
 const WIN_RIGHT = 1.0;
 const WIN_BOTTOM = 0.0;
 const WIN_TOP = 1.0;
-const NEAR = 1.0;
+const NEAR = 0.9;
 const FAR = 300;
 
 // WebGL Object
@@ -35,9 +38,9 @@ var requestId;
 
 // Init viewing Vectors
 var lookUp = new vec3.fromValues(0.0, 1.0, 0.0);
-var eye = new vec3.fromValues(0.5, 0.2, -1.0);
+var eye = new vec3.fromValues(0.5, -0.2, -0.5);
 // var eye = new vec3.fromValues(0.5, -0.05, -0.05);
-var lookAt = new vec3.fromValues(0.5, 0.5, 0.0);
+var lookAt = new vec3.fromValues(0.5, 0.2, 0.0);
 
 const light = {
     position: new vec3.fromValues(-0.5, 1.5, -0.5),
@@ -330,36 +333,72 @@ function render() {
     gameBoard.renderLaneBackgrounds(gl, shaderLocs);
     gameBoard.renderFrogs(gl, shaderLocs);
     gameBoard.renderLaneObjects(gl, shaderLocs);
-    gameBoard.checkLaneCollisons(gl);
+    gameBoard.checkLaneCollisions(gl);
 }
 
 function playAgain() {
     document.getElementById("play-again-btn").style.visibility = "hidden";
     document.getElementById("game-status").style.visibility = "hidden";
-    main();
+    gameBoard.gameReset(gl);
 }
 
 function keyDowns(event) {
     switch (event.key) {
         case "ArrowUp":
+        case "w":
             gameBoard.handleFrogMoveUp();
-            gameBoard.checkLaneCollisons(gl);
+            gameBoard.checkLaneCollisions(gl, true);
             break;
         case "ArrowDown":
+        case "s":
             gameBoard.handleFrogMoveDown();
-            gameBoard.checkLaneCollisons(gl);
+            gameBoard.checkLaneCollisions(gl, true);
             break;
         case "ArrowRight":
+        case "d":
             gameBoard.handleFrogMoveRight(render);
-            gameBoard.checkLaneCollisons(gl);
+            gameBoard.checkLaneCollisions(gl);
             break;
         case "ArrowLeft":
+        case "a":
             gameBoard.handleFrogMoveLeft();
-            gameBoard.checkLaneCollisons(gl);
+            gameBoard.checkLaneCollisions(gl);
+            break;
+        case "!":
+            makeItYourOwn();
             break;
         default:
             break;
     }
+}
+
+function makeItYourOwn() {
+    RoadLane.material = {
+        ambient: [0.1, 0.1, 0.1],
+        diffuse: [0.388, 0.055, 0.196],
+        specular: [0.3, 0.3, 0.3],
+        n: 10,
+    };
+    WaterLane.material = {
+        ambient: [0.1, 0.1, 0.1],
+        diffuse: [1.0, 0.506, 0.102],
+        specular: [0.3, 0.3, 0.3],
+        n: 10,
+    };
+    let lanes = [
+        // The numbers here correspond to the Y value at which this lane is starting.
+        new HomeLane(Lane.NO_DIRECTION, 0.9),
+        new LogLane(Lane.LEFT, 0.8),
+        new TurtleLane(Lane.RIGHT, 0.7),
+        new LogLane(Lane.LEFT, 0.6),
+        new SafeLaneMIYO(Lane.NO_DIRECTION, 0.5),
+        new TruckLane(Lane.LEFT, 0.4),
+        new CarsLane(Lane.RIGHT, 0.3),
+        new TruckLane(Lane.LEFT, 0.2),
+        new CarsLane(Lane.RIGHT, 0.1),
+        new SafeLaneMIYO(Lane.NO_DIRECTION, 0.0),
+    ];
+    gameBoard = new Board(lanes, gl);
 }
 
 // Sets up key event listeners for frog movements.

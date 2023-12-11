@@ -578,6 +578,7 @@ class Log {
 
         this.modelMatrix = mat4.create();
         this.centroid = getPartsCentroid(this.parts);
+        this.centroid[2] = 0.475;
     }
 }
 
@@ -648,7 +649,7 @@ class Turtle {
             ],
             material: {
                 ambient: [0.1, 0.1, 0.1],
-                diffuse: [0.54, 0.60, 0.36],
+                diffuse: [0.54, 0.6, 0.36],
                 specular: [0.3, 0.3, 0.3],
                 n: 10,
             },
@@ -684,6 +685,7 @@ class Turtle {
         }
         this.modelMatrix = mat4.create();
         this.centroid = getPartsCentroid(this.parts);
+        this.centroid[2] = 0.47;
     }
 }
 
@@ -730,6 +732,7 @@ class LilyPad {
         }
         this.modelMatrix = mat4.create();
         this.centroid = getPartsCentroid(this.parts);
+        this.centroid[2] = 0.48;
     }
 }
 class ForbiddenGrass {

@@ -6,7 +6,6 @@ class Lane {
     static RIGHT = 0;
     static LEFT = 1;
     static NO_DIRECTION = 2;
-    static material;
 
     // Handles right moving lane objects
     static translateObjectRight(object) {
@@ -150,7 +149,7 @@ class HomeLane extends WaterLane {
                     case ForbiddenGrass:
                         return false;
                     case LilyPad:
-                        return true;
+                        return this.objects[obj];
                     default:
                         break;
                 }
@@ -171,6 +170,20 @@ class SafeLane extends Lane {
     constructor(direction, start) {
         super(direction, start);
         this.material = SafeLane.material;
+        this.initBackgroundTriangles();
+    }
+}
+
+class SafeLaneMIYO extends SafeLane {
+    static material = {
+        ambient: [0.1, 0.1, 0.1],
+        diffuse: [1.0, 0.0, 0.0],
+        specular: [0.3, 0.3, 0.3],
+        n: 10,
+    };
+    constructor(direction, start) {
+        super(direction, start);
+        this.material = SafeLaneMIYO.material;
         this.initBackgroundTriangles();
     }
 }
@@ -216,7 +229,7 @@ class LogLane extends WaterLane {
     checkCollision(frog) {
         for (let i = 0; i < this.objects.length; i++) {
             if (frog.calculateDistance(this.objects[i]) < 0.05) {
-                return true;
+                return this.objects[i];
             }
         }
         return false;
@@ -255,7 +268,7 @@ class TurtleLane extends WaterLane {
     checkCollision(frog) {
         for (let i = 0; i < this.objects.length; i++) {
             if (frog.calculateDistance(this.objects[i]) <= 0.05) {
-                return true;
+                return this.objects[i];
             }
         }
         return false;
@@ -335,6 +348,37 @@ class CarsLane extends RoadLane {
     }
 }
 
+class CarsLaneMIYO extends CarsLane {
+    static material = {
+        ambient: [0.1, 0.1, 0.1],
+        diffuse: [0.388, 0.055, 0.196],
+        specular: [0.3, 0.3, 0.3],
+        n: 10,
+    };
+
+    constructor(direction, start) {
+        super(direction, start);
+        this.objects = [];
+        this.material = CarsLaneMIYO.material;
+        this.initObjects();
+    }
+}
+
+class TruckLaneMIYO extends TruckLane {
+    static material = {
+        ambient: [0.1, 0.1, 0.1],
+        diffuse: [0.388, 0.055, 0.196],
+        specular: [0.3, 0.3, 0.3],
+        n: 10,
+    };
+
+    constructor(direction, start) {
+        super(direction, start);
+        this.objects = [];
+        this.material = TruckLaneMIYO.material;
+        super.initObjects();
+    }
+}
 export {
     Lane,
     RoadLane,
@@ -344,5 +388,8 @@ export {
     CarsLane,
     TruckLane,
     SafeLane,
+    SafeLaneMIYO,
+    TruckLaneMIYO,
+    CarsLaneMIYO,
     HomeLane,
 };
